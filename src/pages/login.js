@@ -7,6 +7,7 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import axios from 'axios';
+import { Alert } from "react-bootstrap";
 
 const Register =() => {
 
@@ -54,6 +55,7 @@ const Register =() => {
           console.log(response.data)
             if (response.data.statuscode===200){
               console.log(response.data.response.sapid)
+              alert(response.data.response.status)
               navigate({
                 pathname: '/exam',
                 search: '?sapid='+response.data.response.sapid,

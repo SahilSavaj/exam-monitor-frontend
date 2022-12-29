@@ -114,12 +114,13 @@ useEffect(() => {
                     const get_resp = await axios.get(url+"?question_no="+num+"&sapid="+sapid);
                     console.log(num)
                     setLoading(true);
-                    if(get_resp.data.response===false){
-                        alert("Exam Over. Thankyou")
-                        navigate("/");
+                    if(get_resp.data.response.exam_done===true){
+                    alert("Exam Over. Thankyou")
+                    navigate("/")
+                    
                     }
                     else{
-                        setQuestion(get_resp.data.response.questions)
+                        setQuestion(get_resp.data.response.question)
                         setOption_a(get_resp.data.response.optionA)
                         setOption_b(get_resp.data.response.optionB)
                         setOption_c(get_resp.data.response.optionC)
@@ -150,7 +151,7 @@ useEffect(() => {
                     
                 }
                 else{
-                    setQuestion(get_resp.data.response.questions)
+                    setQuestion(get_resp.data.response.question)
                     setOption_a(get_resp.data.response.optionA)
                     setOption_b(get_resp.data.response.optionB)
                     setOption_c(get_resp.data.response.optionC)
@@ -178,9 +179,8 @@ async function check_face(){
     // console.log(webcamRef.current)
     if (webcamRef.current){
         if(webcamRef.current.state.hasUserMedia !== false){
-            // const url='http://192.168.0.104:5000/capture'
-        const url='http://172.20.10.2:5000/capture'
-
+            const url='http://192.168.0.104:8000/capture'
+        // const url='http://172.20.10.2:5000/capture'
             const content={
                 image:webcamRef.current.getScreenshot()
                 }
@@ -193,10 +193,7 @@ async function check_face(){
             navigate("/")
         }
     }
-    
 }
-
-
 
 return (
     <>
