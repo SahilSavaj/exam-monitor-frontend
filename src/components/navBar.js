@@ -1,36 +1,39 @@
 import React from "react";
-import { Nav, NavLink, NavMenu }
-from "./navBarElements";
+// import { Nav, NavLink, NavMenu } from "./navBarElements";
+import {  Link } from "react-router-dom";
 import logo from './static/logo.png' 
-import "./navBar.css"
+import logo_vid from "./static/logo_vid.mp4"
 
-const Navbar = () => {
+// import "./navBar.css"
+
+export default function Navbar(){
 return (
     <>
-    <Nav>
-        <NavLink to="/" activeStyle>
-        <img className="logo-top" href="/" src={logo} alt=''></img>
-        </NavLink>
-        <NavMenu>
-            <NavLink to="/" activeStyle>
-            Home
-            </NavLink>
-            <NavLink to="/login" activeStyle>
-            Login
-            </NavLink>
-            <NavLink to="/register" activeStyle>
-            Register
-            </NavLink>
-            {/* <NavLink to="/exam" activeStyle>
-            Exam
-            </NavLink> */}
-            {/* <NavLink to="/contact" activeStyle>
-            Contact Us
-            </NavLink> */}
-        </NavMenu>
-    </Nav>
+        <header className="bg-transparent text-[#D61C4E]">
+                {/* style={{width:"fit-content;"}} */}
+            <div className="flex container font-sans items-center ">
+                <nav className="title-font font-medium text-white mr-2">
+                    <Link to="/" className="">
+                        <img className="logo-top" src={logo} width={60} alt=''></img>
+                    </Link>
+                </nav>
+                <nav className=" py-1 pl-4 md:border-l md:border-gray-500 flex flex-row items-center text-lg justify-center">
+                    <Link to="/" className="mr-5 hover:text-white ">
+                        Home
+                    </Link>
+                    <Link to="/login" className="mr-5 hover:text-white ">
+                        Login
+                    </Link>
+                    <Link to="/register" className="mr-5 hover:text-white ">
+                        Register
+                    </Link>
+                    <Link to="/admin" className="mr-5 hover:text-white ">
+                        Admin
+                    </Link>
+                </nav>
+            </div>
+        </header>
     </>
 );
 };
 
-export default Navbar;
