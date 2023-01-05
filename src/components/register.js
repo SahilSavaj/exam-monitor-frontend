@@ -90,7 +90,7 @@ const Register =() => {
     console.log(content);
     await sleep(3000)
       // const url='http://127.0.0.1:5000/register'
-    const url='http://192.168.0.104:8000/register'
+    const url='http://192.168.0.100:8000/register'
     // const url='http://172.20.10.2:5000/register'
 
 

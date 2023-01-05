@@ -69,7 +69,7 @@ const Exam =() => {
 
 async function fetch_question(question_no,submit){
   setLoading(true);
-  const url='http://192.168.0.104:8000/exam'
+  const url='http://192.168.0.100:8000/exam'
   // const url='http://172.20.10.2:5000/exam'
   if (submit){
     const content={
@@ -91,6 +91,10 @@ async function fetch_question(question_no,submit){
         alert("All questions are answered. Thankyou")
         navigate("/")
           }
+        else if(get_resp.data.statuscode===404){
+          alert(get_resp.data.response)
+          navigate("/")
+        }
         else{
             setQuestion(get_resp.data.response.question)
             setOption_a(get_resp.data.response.optionA)
@@ -113,6 +117,10 @@ async function fetch_question(question_no,submit){
         alert("All questions are answered. Thankyou")
         navigate("/")
     }
+    else if(get_resp.data.statuscode===404){
+      alert(get_resp.data.response)
+      navigate("/")
+    }
     else{
         setQuestion(get_resp.data.response.question)
         setOption_a(get_resp.data.response.optionA)
@@ -120,7 +128,7 @@ async function fetch_question(question_no,submit){
         setOption_c(get_resp.data.response.optionC)
         setOption_d(get_resp.data.response.optionD)
         setQuestion_no(get_resp.data.response.question_no)
-        console.log(get_resp.data.response)
+        console.log(get_resp.data)
         await sleep(2000)
         // Closed the loading page
         // await sleep(5000)
