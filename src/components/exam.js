@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 
 
+const ip_url=process.env.REACT_APP_IP_ADDRESS
 
 const sleep = ms => new Promise(
     resolve => setTimeout(resolve, ms)
@@ -69,7 +70,8 @@ const Exam =() => {
 
 async function fetch_question(question_no,submit){
   setLoading(true);
-  const url='http://192.168.0.100:8000/exam'
+  // const url='http://192.168.0.100:8000/exam'
+  const url=ip_url+'/exam'
   // const url='http://172.20.10.2:5000/exam'
   if (submit){
     const content={
@@ -141,7 +143,8 @@ async function fetch_question(question_no,submit){
 async function check_face(){
     if (webcamRef.current){
         if(webcamRef.current.state.hasUserMedia !== false){
-            const url='http://192.168.0.114:8000/capture'
+            // const url='http://192.168.0.114:8000/capture'
+            const url=ip_url
         // const url='http://172.20.10.2:5000/capture'
             const content={
                 image:webcamRef.current.getScreenshot()

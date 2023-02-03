@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
 import axios from 'axios';
 
+const ip_url=process.env.REACT_APP_IP_ADDRESS
 
 
 const sleep = ms => new Promise(
@@ -46,7 +47,8 @@ const Login =() => {
       }
     console.log(content);
     // const url='http://127.0.0.1:5000/login'
-    const url='http://192.168.0.100:8000/login'
+    // const url='http://192.168.0.100:8000/login'
+    const url=ip_url+"/login"
         // const url='http://172.20.10.2:5000/login'
         await axios.post(url, content)
         .then(response => {

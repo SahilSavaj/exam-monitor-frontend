@@ -1,25 +1,56 @@
 import axios from "axios";
 import React, { useState,useEffect,Component} from "react";
+import { useNavigate } from "react-router-dom";
 
 const sleep = ms => new Promise(
   resolve => setTimeout(resolve, ms)
 );
 
-class TableRow extends Component {
-  render() {
-      var row = this.props.row;
-      return (
-          <tr scope="col" className="text-md font-medium text-gray-900 px-6 py-4 text-left">
-              {row.map(val => <td  className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{val}</td>)}
-          </tr>
-      )
-  }
-}
+
+const ip_url=process.env.REACT_APP_IP_ADDRESS
+
+
 
 function Admin() {
 
+  class TableRowQuestions extends Component {
+    render() {
+        var row = this.props.row;
+        // console.log(row)
+        return (
+            <tr scope="col" className="text-md text-gray-900 px-6 py-4 text-center" id={row[0]}>
+                {row.map(val => <td  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style={{border:'1px solid black'}}>{val}</td>)}
+                <td className="px-6 whitespace-nowrap text-sm text-blue-900" style={{border:'1px solid black'}}> <button className="bg-sky-300 rounded-full w-[50px] p-1 hover:bg-white hover:text-sky-500">Edit</button></td>
+                <td className="px-6 whitespace-nowrap text-sm text-red-900" style={{border:'1px solid black'}}> <button className="bg-rose-300 rounded-full w-[70px] p-1 hover:bg-white hover:text-red-500" onClick={(e)=> deleteQuestion(e,row[0])}>Delete</button></td>
+            </tr>
+        )
+    }
+  }
+  
+  class TableRowAnswers extends Component {
+    render() {
+        var row = this.props.row;
+        return (
+            <tr scope="col" className="text-md text-gray-900 px-6 py-4 text-center">
+                {row.map(val => <td  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style={{border:'1px solid black'}}>{val}</td>)}
+            </tr>
+        )
+    }
+  }
+  let navigate = useNavigate();
+
+  const input_style={
+    'borderBottom': '1px solid #445366'
+  }
+
+  const header_style={
+    border: '1px solid #000000'
+  }
+
+
   const [loading,setLoading]=useState(false)
-  const [internalloader,setInternalLoader]=useState(true)
+  const [questions_internalloader,setQuestions_internalloader]=useState(true)
+  const [answers_internalloader,setAnswers_internalloader]=useState(true)
   const [studentAnswers,setStudentAnswers]=useState(false)
   const [listOfStudents,setListOfStudents]=useState(false)
   const [getAllQuestions,setGetAllQuestions]=useState(false)
@@ -28,38 +59,113 @@ function Admin() {
   const [tablebody,setTableBody]=useState('')
   const sapid=60002190091
 
+  const [question,setQuestion]=useState('');
+  const [option_a,setOption_a]=useState('');
+  const [option_b,setOption_b]=useState('');
+  const [option_c,setOption_c]=useState('');
+  const [option_d,setOption_d]=useState('');
+  const [answer,setAnswer]=useState('');
+
+  const handleInputChange = (e) => {
+    const {id , value} = e.target;
+    // console.log()
+    if(id === "question"){
+      setQuestion(value);
+    }
+    if(id === "option_a"){
+      setOption_a(value);
+    }
+    if(id === "option_b"){
+        setOption_b(value);
+    }
+    if(id === "option_c"){
+      setOption_c(value);
+    }
+    if(id === "option_d"){
+      setOption_d(value);
+    }
+    if(id==="answer"){
+      setAnswer(value)
+    }
+  }
+
+
+
   async function fetch_all_questions () {
-    const url='http://192.168.0.100:8000/admin/questions'
+    setQuestions_internalloader(true);
+    const url=ip_url+'/admin/questions'
     const resp= await axios.get(url+"?sapid="+sapid);
-    setInternalLoader(true);
     // console.log(resp.data)
     await sleep(1000)
     if (resp.data.statuscode===200){
       alert(resp.data.response.status)
       const data=resp.data.response.questions
       setTableBody(data.slice(1))
-      setInternalLoader(false)
+      setQuestions_internalloader(false)
     }
     else{
-      setInternalLoader(false)
+      setQuestions_internalloader(false)
     }
   }
   async function fetch_all_student_answers () {
-    const url='http://192.168.0.100:8000/admin/answers'
+    setAnswers_internalloader(true);
+    const url=ip_url+'/admin/answers'
     const resp= await axios.get(url);
-    setInternalLoader(true);
     console.log(resp.data)
     await sleep(1000)
     if (resp.data.statuscode===200){
       alert(resp.data.response.status)
       const data=resp.data.response.answers
       setTableBody(data.slice(1))
-      setInternalLoader(false)
+      setAnswers_internalloader(false)
     }
     else{
-      setInternalLoader(false)
+      setAnswers_internalloader(false)
     }
   }
+  async function deleteQuestion(e,to_delete_question_no){
+    e.preventDefault()
+    console.log(to_delete_question_no)
+    setQuestions_internalloader(true);
+    await sleep(2000)
+    setQuestions_internalloader(false)
+
+    // await fetch_all_questions();
+
+  }
+
+  async function handleSubmit (e) {
+    await setGetAllQuestions(false);
+    await setStudentAnswers(false);
+    e.preventDefault();
+    let content={
+      questions:question,
+      optionA:option_a,
+      optionB:option_b,
+      optionC:option_c,
+      optionD:option_d,
+      answer:answer
+    }
+    console.log(content)
+    const url=ip_url+'/admin/addquestion'
+    await axios.post(url, content)
+    .then(response => {
+      console.log(response.data)
+      if (response.data.statuscode===200){
+          alert(response.data.response)
+          navigate("/admin",{sapid:sapid})
+      }
+      else{
+        alert(response.data.response)
+        navigate("/admin")
+      }
+    }
+      )
+    .catch(error => {
+    console.error('There was an error!', error);
+    });
+  }
+
   useEffect( () => {
     (async()=>{
       await sleep(500)
@@ -68,10 +174,10 @@ function Admin() {
   },[])
 
     return ( 
-      <>
+      <div className="" >
       
             {!loading ? (
-          <div className="flex justify-center items-center align-middle h-[80vh] ">
+          <div className="flex justify-center items-center align-middle h-[100vh]">
             <div className="spinner-border animate-spin inline-block w-12 h-12 border-4 rounded-full text-[#D61C4E] transition ease-in-out" role="status">
             </div>
           </div>) :
@@ -79,8 +185,9 @@ function Admin() {
             <div className="page_heading flex justify-center align-start text-[#D61C4E] font-sans text-[3vw]">
                   Admin
             </div>
-            <div className="get_all_questions flex my-5 flex-col container mx-auto w-[100vw] h-[1000vh]">
-              <div className="sub_heading flex text-white text-[1.5vw] pt-5">
+            <div className="main_content flex my-5 flex-col container mx-auto w-[100vw] h-[100vh] space-y-5">
+              <div className="all_questions">
+              <div className="sub_heading flex text-white text-[1.5vw]">
                 All Questions
               </div>
               <hr className="py-2"></hr>
@@ -89,15 +196,13 @@ function Admin() {
                 onClick={async ()=>{
                   if(!getAllQuestions){
                     await setGetAllQuestions(!getAllQuestions);
-                    await fetch_all_questions();
                     await setStudentAnswers(false);
+                    await fetch_all_questions();
 
                   }
                   else{
                     await setGetAllQuestions(!getAllQuestions);
-                    await setInternalLoader(true)
-                    
-
+                    await setQuestions_internalloader(true)
                   }
                   }}>
                     {!getAllQuestions?"Get all Questions":"Hide all Questions"}
@@ -106,7 +211,7 @@ function Admin() {
                   {!getAllQuestions? (""
                   ):
                   (
-                    internalloader?(
+                    questions_internalloader?(
                       <div className="flex justify-center items-center align-middle h-[80vh] ">
                       <div className="spinner-border animate-spin inline-block w-12 h-12 border-4 rounded-full text-[#D61C4E] transition ease-in-out" role="status">
                       </div>
@@ -115,23 +220,26 @@ function Admin() {
                   (
                     <>
                         <div className="flex flex-col">
-                            <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
-                              <div className="py-2 inline-block min-w-full sm:px-6 lg:px-8">
-                                <div className="overflow-hidden rounded">
-                                  <table className="min-w-full bg-[rgba(255,255,255,0.6)]">
+                            <div className="overflow-auto">
+                              <div className="py-2 inline-block min-w-fit">
+                                <div className="overflow-auto max-h-[50vh]">
+                                  <table className="min-w-fit bg-[rgba(255,255,255,0.6)] table-auto border-black rounded-lg">
                                     <thead className="">
-                                      <tr>
-                                        <th scope="col" className="text-md font-medium text-gray-900 px-6 py-4 text-left w-[5vw]">Question No.</th>
-                                        <th scope="col" className="text-md font-medium text-gray-900 px-6 py-4 text-left">Question</th>
-                                        <th scope="col" className="text-md font-medium text-gray-900 px-6 py-4 text-left">Option A</th>
-                                        <th scope="col" className="text-md font-medium text-gray-900 px-6 py-4 text-left">Option B</th>
-                                        <th scope="col" className="text-md font-medium text-gray-900 px-6 py-4 text-left">Option C</th>
-                                        <th scope="col" className="text-md font-medium text-gray-900 px-6 py-4 text-left">Option D</th>
-                                        <th scope="col" className="text-md font-medium text-gray-900 px-6 py-4 text-left">Answer</th>
+                                      <tr className="uppercase">
+                                        <th scope="col" className="text-md text-gray-900 px-6 py-4 text-center w-[1vw] font-extrabold" style={header_style}>Question No.</th>
+                                        <th scope="col" className="text-md text-gray-900 px-6 py-4 text-center font-extrabold" style={header_style}>Question</th>
+                                        <th scope="col" className="text-md text-gray-900 px-6 py-4 text-center font-extrabold" style={header_style}>Option A</th>
+                                        <th scope="col" className="text-md text-gray-900 px-6 py-4 text-center font-extrabold" style={header_style}>Option B</th>
+                                        <th scope="col" className="text-md text-gray-900 px-6 py-4 text-center font-extrabold" style={header_style}>Option C</th>
+                                        <th scope="col" className="text-md text-gray-900 px-6 py-4 text-center font-extrabold" style={header_style}>Option D</th>
+                                        <th scope="col" className="text-md text-gray-900 px-6 py-4 text-center font-extrabold" style={header_style}>Answer</th>
+                                        <th scope="col" className="text-md text-gray-900 px-6 py-4 text-center font-extrabold" style={header_style}>Edit</th>
+                                        <th scope="col" className="text-md text-gray-900 px-6 py-4 text-center font-extrabold" style={header_style}>Delete</th>
+
                                       </tr>
                                     </thead>
                                     <tbody>
-                                        {tablebody.map(row => <TableRow row={row} />)}
+                                        {tablebody.map(row => <TableRowQuestions row={row} />)}
                                     </tbody>
                                   </table>
                                 </div>
@@ -142,6 +250,8 @@ function Admin() {
                   )
                 )
                 }
+                </div>
+                <div className="Student-answers">
               <div className="sub_heading flex text-white text-[1.5vw] pt-5">
                 Student Answers
               </div>
@@ -151,24 +261,21 @@ function Admin() {
                 onClick={async ()=>{
                   if(!studentAnswers){
                     await setStudentAnswers(!studentAnswers);
-                    await fetch_all_student_answers();
                     await setGetAllQuestions(false);
-
+                    await fetch_all_student_answers();
                   }
                   else{
                     await setStudentAnswers(!studentAnswers);
-                    await setInternalLoader(true)
-                    
-
+                    await setAnswers_internalloader(true)
                   }
                   }}>
-                    {!studentAnswers?"Get all Answers":"Hide all Asnwers"}
+                    {!studentAnswers?"Get all Answers":"Hide all Answers"}
                 </button>
               </div>
                   {!studentAnswers? (""
                   ):
                   (
-                    internalloader?(
+                    answers_internalloader?(
                       <div className="flex justify-center items-center align-middle h-[80vh] ">
                       <div className="spinner-border animate-spin inline-block w-12 h-12 border-4 rounded-full text-[#D61C4E] transition ease-in-out" role="status">
                       </div>
@@ -177,19 +284,19 @@ function Admin() {
                   (
                     <>
                         <div className="flex flex-col">
-                            <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
-                              <div className="py-2 inline-block min-w-full sm:px-6 lg:px-8">
-                                <div className="overflow-hidden rounded">
-                                  <table className="min-w-full bg-[rgba(255,255,255,0.6)]">
+                            <div className="overflow-auto ">
+                            <div className="py-2 inline-block min-w-fit">
+                                <div className="overflow-auto max-h-[50vh]">
+                                  <table className="min-w-fit bg-[rgba(255,255,255,0.6)] rounded-lg">
                                     <thead className="">
                                       <tr>
-                                        <th scope="col" className="text-md font-medium text-gray-900 px-6 py-4 text-left w-[10vw]">Question No.</th>
-                                        <th scope="col" className="text-md font-medium text-gray-900 px-6 py-4 text-left">Student ID</th>
-                                        <th scope="col" className="text-md font-medium text-gray-900 px-6 py-4 text-left">Answer</th>
+                                        <th scope="col" className="text-md text-gray-900 px-6 py-4 text-left w-[10vw] font-extrabold" style={header_style}>Question No.</th>
+                                        <th scope="col" className="text-md text-gray-900 px-6 py-4 text-center font-extrabold" style={header_style}>Student ID</th>
+                                        <th scope="col" className="text-md text-gray-900 px-6 py-4 text-center font-extrabold" style={header_style}>Answer</th>
                                       </tr>
                                     </thead>
                                     <tbody>
-                                        {tablebody.map(row => <TableRow row={row} />)}
+                                        {tablebody.map(row => <TableRowAnswers row={row} />)}
                                     </tbody>
                                   </table>
                                 </div>
@@ -200,19 +307,111 @@ function Admin() {
                   )
                 )
                 }
+                </div>
+                <div className="add_questions">
+              <div className="sub_heading flex text-white text-[1.5vw] pt-5">
+                  Add Questions
+              </div>
+              <hr className="py-2"></hr>
+              <div className="add_questions_form flex flex-col justify-start transition duration-150 ease-in-out text-[1vw]">
+                <form className="" onSubmit={(e)=>handleSubmit(e)}>
+                <div className="form-group mb-6">
+                  <div className="input_field flex align-middle text-white justify-start space-x-2 items-center text-lg ">
+                  <label className="w-[6vw]">Question :</label>
+                    <input className="form-control border-solid pl-3 py-1.5 w-[30vw] col-span-10 m-0 bg-transparent 
+                    transition ease-in-out text-base focus:text-white focus:bg-transparent focus:border-black focus:outline-none focus:rounded" 
+                      style={input_style}
+                      type="text" 
+                      id="question" 
+                      placeholder="Enter the question" 
+                      name="question" 
+                      onChange={(e) => handleInputChange(e)}></input>
+                  </div>
+                </div>
+                      <div className="form-group mb-6">
+                        <div className="input_field flex align-middle text-white justify-start space-x-2 items-center text-lg ">
+                        <label className="w-[6vw]">Option A :</label>
+                          <input className="form-control border-solid pl-3 py-1.5 w-[30vw] col-span-10 m-0 bg-transparent 
+                          transition ease-in-out text-base focus:text-white focus:bg-transparent focus:border-black focus:outline-none focus:rounded" 
+                            style={input_style}
+                            type="text" 
+                            id="option_a" 
+                            placeholder="Enter option A" 
+                            name="option_a" 
+                            onChange={(e) => handleInputChange(e)}></input>
+                        </div>
+                      </div>
+                      <div className="form-group mb-6">
+                        <div className="input_field flex align-middle text-white justify-start space-x-2 items-center text-lg ">
+                        <label className="w-[6vw]">Option B :</label>
+                          <input className="form-control border-solid pl-3 py-1.5 w-[30vw] col-span-10 m-0 bg-transparent 
+                          transition ease-in-out text-base focus:text-white focus:bg-transparent focus:border-black focus:outline-none focus:rounded" 
+                            style={input_style}
+                            type="text" 
+                            id="option_b" 
+                            placeholder="Enter option B" 
+                            name="option_b" 
+                            onChange={(e) => handleInputChange(e)}></input>
+                        </div>
+                      </div>
+                      <div className="form-group mb-6">
+                        <div className="input_field flex align-middle text-white justify-start space-x-2 items-center text-lg ">
+                        <label className="w-[6vw]">Option C :</label>
+                          <input className="form-control border-solid pl-3 py-1.5 w-[30vw] col-span-10 m-0 bg-transparent 
+                          transition ease-in-out text-base focus:text-white focus:bg-transparent focus:border-black focus:outline-none focus:rounded" 
+                            style={input_style}
+                            type="text" 
+                            id="option_c" 
+                            placeholder="Enter option C" 
+                            name="option_c" 
+                            onChange={(e) => handleInputChange(e)}></input>
+                        </div>
+                      </div>
+                      <div className="form-group mb-6">
+                        <div className="input_field flex align-middle text-white justify-start space-x-2 items-center text-lg ">
+                        <label className="w-[6vw]">Option D :</label>
+                          <input className="form-control border-solid pl-3 py-1.5 w-[30vw] col-span-10 m-0 bg-transparent 
+                          transition ease-in-out text-base focus:text-white focus:bg-transparent focus:border-black focus:outline-none focus:rounded" 
+                            style={input_style}
+                            type="text" 
+                            id="option_d" 
+                            placeholder="Enter option D" 
+                            name="option_d" 
+                            onChange={(e) => handleInputChange(e)}></input>
+                        </div>
+                      </div>
+                      <div className="form-group mb-6">
+                        <div className="input_field flex align-middle text-white justify-start space-x-2 items-center text-lg ">
+                        <label className="w-[6vw]">Answer :</label>
+                          <input className="form-control border-solid pl-3 py-1.5 w-[30vw] col-span-10 m-0 bg-transparent 
+                          transition ease-in-out text-base focus:text-white focus:bg-transparent focus:border-black focus:outline-none focus:rounded" 
+                            style={input_style}
+                            type="text" 
+                            id="answer" 
+                            placeholder="Enter the answer" 
+                            name="answer" 
+                            onChange={(e) => handleInputChange(e)}></input>
+                        </div>
+                      </div>
+                      <div className="form-group mb-6">
+                        <div className="submit_button flex align-middle text-white justify-start space-x-2 items-center text-[1.2vw] p-t-5">
+                          <button className="formFieldLink t-md hover:text-[#D61C4E] transition ease-in-out bg-[#D61C4E] px-5 py-1.5 rounded-lg hover:bg-white">
+                              Add
+                          </button>
+                        </div>
+                      </div>
+                </form>
 
+                </div>
+              </div>
+            
+            
+            
+            
             </div>
             </>
             )}
-              {/* <select className="form-select appearance-none flex w-[20vw] px-3 py-1.5 text-base font-sans text-black bg-slate-300 bg-no-repeat border border-solid 
-                border-gray-30 rounded transition ease-in-out focus:text-black focus:bg-slate-300 focus:border-none focus:outline-none" 
-                aria-label="select">
-                  <option selected>Select </option>
-                  <option value="1">One</option>
-                  <option value="2">Two</option>
-                  <option value="3">Three</option>
-              </select> */}
-            </>
+            </div>
           
     );
   }

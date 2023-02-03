@@ -25,7 +25,7 @@ export default function App() {
   return (
     <>
       <div className="main_background" style={main_style}>
-        <div className='mask absolute top-0 left-0 w-full h-full overflow-hidden bg-fixed' style={mask_style}>
+        <div className='mask absolute top-0 left-0 w-full h-full overflow-auto bg-fixed' style={mask_style}>
           <div className="main_rotes">
           <Router>
             <Navbar/>

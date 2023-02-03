@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
 import axios from 'axios';
 
+const ip_url=process.env.REACT_APP_IP_ADDRESS
+
 const sleep = ms => new Promise(
   resolve => setTimeout(resolve, ms)
 );
@@ -71,6 +73,7 @@ const Register =() => {
       facingMode: "user"
     };
     const webcamRef = React.useRef(null);
+    
   const handleSubmit  = async (e) => {
     e.preventDefault();
     if( webcamRef.current.state.hasUserMedia === false ){
@@ -90,7 +93,8 @@ const Register =() => {
     console.log(content);
     await sleep(3000)
       // const url='http://127.0.0.1:5000/register'
-    const url='http://192.168.0.100:8000/register'
+    // const url='http://192.168.0.100:8000/register'
+    const url=ip_url+'/register'
     // const url='http://172.20.10.2:5000/register'
 
 
