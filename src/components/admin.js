@@ -2,14 +2,14 @@ import axios from "axios";
 import React, { useState,useEffect,Component} from "react";
 import { useNavigate } from "react-router-dom";
 
+
 const sleep = ms => new Promise(
   resolve => setTimeout(resolve, ms)
 );
 
-
 const ip_url=process.env.REACT_APP_IP_ADDRESS
-
-
+const searchParams = new URLSearchParams(document.location.search)
+const admin_id=searchParams.get('admin_id')
 
 function Admin() {
 
@@ -90,15 +90,18 @@ function Admin() {
   }
 
 
-
-  async function fetch_all_questions () {
+  async function fetch_all_questions (alert_flag) {
     setQuestions_internalloader(true);
+    const searchParams = new URLSearchParams(document.location.search)
+    const admin_id=searchParams.get('admin_id')
     const url=ip_url+'/admin/questions'
-    const resp= await axios.get(url+"?sapid="+sapid);
+    const resp= await axios.get(url+"?sapid="+sapid+"&admin_id="+admin_id);
     // console.log(resp.data)
     await sleep(1000)
     if (resp.data.statuscode===200){
+      if (alert_flag){
       alert(resp.data.response.status)
+      }
       const data=resp.data.response.questions
       setTableBody(data.slice(1))
       setQuestions_internalloader(false)
@@ -109,8 +112,10 @@ function Admin() {
   }
   async function fetch_all_student_answers () {
     setAnswers_internalloader(true);
+    const searchParams = new URLSearchParams(document.location.search)
+    const admin_id=searchParams.get('admin_id')
     const url=ip_url+'/admin/answers'
-    const resp= await axios.get(url);
+    const resp= await axios.get(url+"?admin_id="+admin_id);
     console.log(resp.data)
     await sleep(1000)
     if (resp.data.statuscode===200){
@@ -127,10 +132,20 @@ function Admin() {
     e.preventDefault()
     console.log(to_delete_question_no)
     setQuestions_internalloader(true);
-    await sleep(2000)
+    // await sleep(2000)
+    const searchParams = new URLSearchParams(document.location.search)
+    const admin_id=searchParams.get('admin_id')
+    const url=ip_url+'/admin/deletequestion'
+    const content={
+      to_delete_question_no:to_delete_question_no,
+      admin_id:admin_id
+      }
+    const resp=await axios.post(url,content);
+    console.log(resp.data)
+    await sleep(1000)
+    alert(resp.data.response)
     setQuestions_internalloader(false)
-
-    // await fetch_all_questions();
+    await fetch_all_questions(false);
 
   }
 
@@ -138,13 +153,16 @@ function Admin() {
     await setGetAllQuestions(false);
     await setStudentAnswers(false);
     e.preventDefault();
+    const searchParams = new URLSearchParams(document.location.search)
+    const admin_id=searchParams.get('admin_id')
     let content={
       questions:question,
       optionA:option_a,
       optionB:option_b,
       optionC:option_c,
       optionD:option_d,
-      answer:answer
+      answer:answer,
+      admin_id:admin_id
     }
     console.log(content)
     const url=ip_url+'/admin/addquestion'
@@ -153,11 +171,15 @@ function Admin() {
       console.log(response.data)
       if (response.data.statuscode===200){
           alert(response.data.response)
-          navigate("/admin",{sapid:sapid})
+          navigate(
+            {
+              pathname: '/admin',
+					    search: '?admin_id='+response.data.response.admin_id
+            })
       }
       else{
         alert(response.data.response)
-        navigate("/admin")
+        navigate("/admin",{admin_id:admin_id})
       }
     }
       )
@@ -168,8 +190,28 @@ function Admin() {
 
   useEffect( () => {
     (async()=>{
-      await sleep(500)
-      setLoading(true)
+      await sleep(1000)
+      const searchParams = new URLSearchParams(document.location.search)
+      const admin_id=searchParams.get('admin_id')
+      // console.log(admin_id)
+      if (admin_id){
+        const url=ip_url+'/admin'
+        const get_resp = await axios.get(url+"?admin_id="+admin_id);
+        // console.log(get_resp.data.response)
+        if(get_resp.data.statuscode===200){
+          // alert(get_resp.data.response)
+          setLoading(true)
+        }
+        else{
+          alert(get_resp.data.response)
+          navigate("/")
+        }
+      }
+      else{
+        alert("Invalid Access")
+        navigate("/")
+      }
+      // setLoading(true)
     })();
   },[])
 
@@ -197,7 +239,7 @@ function Admin() {
                   if(!getAllQuestions){
                     await setGetAllQuestions(!getAllQuestions);
                     await setStudentAnswers(false);
-                    await fetch_all_questions();
+                    await fetch_all_questions(true);
 
                   }
                   else{

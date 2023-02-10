@@ -116,10 +116,10 @@ async function fetch_question(question_no,submit){
     setLoading(true);
     console.log(get_resp.data);
     if(get_resp.data.response.exam_done===true){
-        alert("All questions are answered. Thankyou")
+        alert(get_resp.data.response.message)
         navigate("/")
     }
-    else if(get_resp.data.statuscode===404){
+    else if(get_resp.data.statuscode===404 || get_resp.data.statuscode===400){
       alert(get_resp.data.response)
       navigate("/")
     }

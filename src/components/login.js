@@ -13,6 +13,7 @@ const sleep = ms => new Promise(
 );
 
 const Login =() => {
+
   const input_style={
     'borderBottom': '1px solid #445366'
   }
@@ -37,7 +38,7 @@ const Login =() => {
     };
     const webcamRef = React.useRef(null);  
         
-  const handleSubmit  = async (e) => {
+  	const handleSubmit  = async (e) => {
     e.preventDefault();
     if(webcamRef.current.state.hasUserMedia !== false ){
       let content={
@@ -46,20 +47,27 @@ const Login =() => {
         image:webcamRef.current.getScreenshot(),
       }
     console.log(content);
-    // const url='http://127.0.0.1:5000/login'
-    // const url='http://192.168.0.100:8000/login'
     const url=ip_url+"/login"
-        // const url='http://172.20.10.2:5000/login'
         await axios.post(url, content)
         .then(response => {
           console.log(response.data)
             if (response.data.statuscode===200){
-              console.log(response.data.response.sapid)
-              alert(response.data.response.status)
-              navigate({
-                pathname: '/exam',
-                search: '?sapid='+response.data.response.sapid,
-              })
+				console.log(response.data.response.sapid)
+				if(response.data.response.is_admin){
+				alert("Admin Login Successful!")
+				navigate({
+					pathname: '/admin',
+					search: '?admin_id='+response.data.response.sapid,
+					})
+				}
+				else{
+					alert(response.data.response.status)
+					navigate({
+					pathname: '/exam',
+					search: '?sapid='+response.data.response.sapid,
+				})
+				}
+              
             }
             else{
               alert(response.data.response)
