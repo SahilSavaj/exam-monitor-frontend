@@ -51,6 +51,7 @@ function Admin() {
   const [loading,setLoading]=useState(false)
   const [questions_internalloader,setQuestions_internalloader]=useState(true)
   const [answers_internalloader,setAnswers_internalloader]=useState(true)
+  const [timer_internalloader,setTimer_internalloader]=useState(true)
   const [studentAnswers,setStudentAnswers]=useState(false)
   const [listOfStudents,setListOfStudents]=useState(false)
   const [getAllQuestions,setGetAllQuestions]=useState(false)
@@ -65,6 +66,10 @@ function Admin() {
   const [option_c,setOption_c]=useState('');
   const [option_d,setOption_d]=useState('');
   const [answer,setAnswer]=useState('');
+
+  const [timer,setTimer]=useState('')
+
+  const [file, setFile] = useState();
 
   const handleInputChange = (e) => {
     const {id , value} = e.target;
@@ -87,8 +92,21 @@ function Admin() {
     if(id==="answer"){
       setAnswer(value)
     }
+    if(id==="timer"){
+      setTimer(value)
+    }
   }
 
+  const handleFileChange = async (e) => {
+    if (e.target.files) {
+      console.log(e.target.files[0])
+      const buffer = await e.target.files[0].arrayBuffer();
+      // // each entry of array should contain 8 bits
+      const bytes = new Uint8Array(buffer);
+      // await setFile(e.target.files[0]); 
+      setFile(bytes)
+    }
+  };
 
   async function fetch_all_questions (alert_flag) {
     setQuestions_internalloader(true);
@@ -110,6 +128,7 @@ function Admin() {
       setQuestions_internalloader(false)
     }
   }
+
   async function fetch_all_student_answers () {
     setAnswers_internalloader(true);
     const searchParams = new URLSearchParams(document.location.search)
@@ -121,13 +140,19 @@ function Admin() {
     if (resp.data.statuscode===200){
       alert(resp.data.response.status)
       const data=resp.data.response.answers
-      setTableBody(data.slice(1))
+      if(data){
+        setTableBody(data.slice(1))
+        setAnswers_internalloader(false)
+      }
+      setStudentAnswers(false);
       setAnswers_internalloader(false)
+
     }
     else{
       setAnswers_internalloader(false)
     }
   }
+
   async function deleteQuestion(e,to_delete_question_no){
     e.preventDefault()
     console.log(to_delete_question_no)
@@ -171,11 +196,11 @@ function Admin() {
       console.log(response.data)
       if (response.data.statuscode===200){
           alert(response.data.response)
-          navigate(
-            {
-              pathname: '/admin',
-					    search: '?admin_id='+response.data.response.admin_id
-            })
+          // navigate(
+          //   {
+          //     pathname: '/admin',
+					//     search: '?admin_id='+response.data.response.admin_id
+          //   })
       }
       else{
         alert(response.data.response)
@@ -186,6 +211,71 @@ function Admin() {
     .catch(error => {
     console.error('There was an error!', error);
     });
+  }
+
+  async function handleFileUpload(e){
+    await setGetAllQuestions(false);
+    await setStudentAnswers(false);
+    e.preventDefault();
+    const searchParams = new URLSearchParams(document.location.search)
+    const admin_id=searchParams.get('admin_id')
+    const url=ip_url+'/admin/addquestion/file'
+    const content={
+      file:file
+      }
+      console.log(file)
+
+    const headers= {
+      'content-type': file.type,
+      'content-length': `${file.size}`, // 👈 Headers need to be a string
+    }
+    await axios.post(url, content,headers)
+    .then(response => {
+      console.log(response.data)
+      if (response.data.statuscode===200){
+          alert(response.data.response)
+      }
+      else{
+        alert(response.data.response)
+        navigate("/admin",{admin_id:admin_id})
+      }
+    }
+      )
+      .catch(error => {
+      console.error('There was an error!', error);
+      });
+  }
+
+  async function updateTimer(e){
+    e.preventDefault();
+    await setTimer_internalloader(false)
+    console.log(timer)
+    const searchParams = new URLSearchParams(document.location.search)
+    const admin_id=searchParams.get('admin_id')
+    let content={
+      admin_id:admin_id,
+      timer:timer
+    }
+    console.log(content)
+    const url=ip_url+'/admin/settimer'
+    await axios.post(url, content)
+    .then(response => {
+      console.log(response.data)
+      if (response.data.statuscode===200){
+          alert(response.data.response)
+          setTimer(timer)
+          setTimer_internalloader(true)
+      }
+      else{
+        alert(response.data.response)
+        navigate("/admin",{admin_id:admin_id})
+      }
+    }
+      )
+    .catch(error => {
+    console.error('There was an error!', error);
+    });
+    
   }
 
   useEffect( () => {
@@ -201,6 +291,7 @@ function Admin() {
         if(get_resp.data.statuscode===200){
           // alert(get_resp.data.response)
           setLoading(true)
+          setTimer(get_resp.data.response.timer)
         }
         else{
           alert(get_resp.data.response)
@@ -215,6 +306,8 @@ function Admin() {
     })();
   },[])
 
+
+
     return ( 
       <div className="" >
       
@@ -227,7 +320,42 @@ function Admin() {
             <div className="page_heading flex justify-center align-start text-[#D61C4E] font-sans text-[3vw]">
                   Admin
             </div>
-            <div className="main_content flex my-5 flex-col container mx-auto w-[100vw] h-[100vh] space-y-5">
+            <div className="main_content flex my-5 flex-col container mx-auto w-[100vw] h-[fit-content] space-y-5">
+
+
+              <div className="timer-content flex flex-row align-middle space-x-5 items-center">
+                <div className="timer_settings text-[1.5vw] text-white hover:cursor-default">
+                  Timer for each question - 
+                </div>
+                <div className="timer_display space-x-1 flex flex-row py-1.5">
+                  <input className="timer w-[4vw] bg-white h-8 text-white text-lg p-2 placeholder:text-white bg-transparent" 
+                  style={input_style}
+                  type="number" 
+                  name="timer"
+                  id="timer"
+                  value={timer}
+                  placeholder={timer}
+                  onChange={(e) => handleInputChange(e)}></input> 
+                  <span className="text-[1.2vw] text-white hover:cursor-default">secs</span>
+                </div>
+                
+                <button className="flex w-[fit-content] align-middle py-1.5 px-5 text-lg rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white]"
+                
+                onClick={(e)=>updateTimer(e)}>
+                  Change
+                </button>
+                {!timer_internalloader?(
+                  <div className="flex justify-center items-center align-middle">
+                    <div className="spinner-border animate-spin inline-block w-5 h-5 border-4 rounded-full text-[#D61C4E] transition ease-in-out" role="status">
+                    </div>
+                  </div>
+                  ):(
+                    ""
+                  )
+                }
+              </div>
+              
+
               <div className="all_questions">
               <div className="sub_heading flex text-white text-[1.5vw]">
                 All Questions
@@ -350,13 +478,17 @@ function Admin() {
                 )
                 }
                 </div>
-                <div className="add_questions">
+                <div className="add_questions ">
               <div className="sub_heading flex text-white text-[1.5vw] pt-5">
                   Add Questions
               </div>
               <hr className="py-2"></hr>
+              <div className="AddQuestions_main_frame flex flex-row space-x-1 justify-center">
               <div className="add_questions_form flex flex-col justify-start transition duration-150 ease-in-out text-[1vw]">
-                <form className="" onSubmit={(e)=>handleSubmit(e)}>
+                <form className="w-[100%]" onSubmit={(e)=>handleSubmit(e)}>
+                  <div className="subheading text-white text-[1.3vw] py-5 flex justify-center">
+                    Single Question
+                  </div>
                 <div className="form-group mb-6">
                   <div className="input_field flex align-middle text-white justify-start space-x-2 items-center text-lg ">
                   <label className="w-[6vw]">Question :</label>
@@ -443,7 +575,34 @@ function Admin() {
                         </div>
                       </div>
                 </form>
+                </div>
 
+                  {/* // Section 2 */}
+                <form className="upload_file space-y-10 w-[50%]" onSubmit={(e)=>handleFileUpload(e)}>
+                  <div className="subheading text-white text-[1.3vw] py-5 flex justify-center">
+                    Multiple Questions
+                  </div>
+                <div className="form-group mb-6 space-y-5">
+                  <div className="input_field flex flex-col align-middle justify-center text-white space-y-10 items-center text-lg ">
+                    {/* <label className="w-[fit-content]">Upload the csv :</label> */}
+                    <input className="form-control border-solid pl-3 py-1.5 m-0 bg-transparent 
+                    transition ease-in-out text-base focus:text-white focus:bg-transparent focus:border-black focus:outline-none focus:rounded" 
+                      style={input_style}
+                      type="file" 
+                      id="file" 
+                      name="file" 
+                      accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                      onChange={(e) => handleFileChange(e)}></input>
+                  </div>
+                <div className="form-group mb-6">
+                  <div className="submit_button flex align-middle text-white justify-center space-x-2 items-center text-[1.2vw] p-t-5">
+                    <button className="formFieldLink t-md hover:text-[#D61C4E] transition ease-in-out bg-[#D61C4E] px-5 py-1.5 rounded-lg hover:bg-white">
+                        Upload
+                    </button>
+                  </div>
+                </div>
+                  </div>
+                </form>
                 </div>
               </div>
             

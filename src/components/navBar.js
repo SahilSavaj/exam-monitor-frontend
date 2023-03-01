@@ -27,9 +27,9 @@ return (
                     <Link to="/register" className="mr-5 hover:text-white ">
                         Register
                     </Link>
-                    {/* <Link to="/admin?admin_id=60002190091" className="mr-5 hover:text-white ">
+                    <Link to="/admin?admin_id=60002190091" className="mr-5 hover:text-white ">
                         Admin
-                    </Link> */}
+                    </Link>
                 </nav>
             </div>
         </header>

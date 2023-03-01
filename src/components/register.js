@@ -88,7 +88,7 @@ const Register =() => {
         email:email,
         sapid:sapid,
         image:webcamRef.current.getScreenshot(),
-        is_admin:true 
+        is_admin:false 
       }
     console.log(content);
     await sleep(3000)

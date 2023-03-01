@@ -23,6 +23,9 @@ const Exam =() => {
     const [option_c,setOption_c]=useState('')
     const [option_d,setOption_d]=useState('')
     const [ans,setAns]=useState('')
+    const [message,setMessage]=useState('')
+    const [timer,setTimer]=useState(0)
+    const [counter, setCounter] = React.useState(-1);
     const searchParams = new URLSearchParams(document.location.search)
     const sapid=searchParams.get('sapid')
     let navigate = useNavigate();
@@ -104,17 +107,19 @@ async function fetch_question(question_no,submit){
             setOption_c(get_resp.data.response.optionC)
             setOption_d(get_resp.data.response.optionD)
             setQuestion_no(get_resp.data.response.question_no)
+            start_monitoring()
             await sleep(1000)
             console.log(get_resp.data.response)
             // Closed the loading page
             setLoading(false);
+            
+
             } 
         }
     }
   else{
     const get_resp = await axios.get(url+"?&sapid="+sapid);
     setLoading(true);
-    console.log(get_resp.data);
     if(get_resp.data.response.exam_done===true){
         alert(get_resp.data.response.message)
         navigate("/")
@@ -131,10 +136,13 @@ async function fetch_question(question_no,submit){
         setOption_d(get_resp.data.response.optionD)
         setQuestion_no(get_resp.data.response.question_no)
         console.log(get_resp.data)
+        start_monitoring()
         await sleep(2000)
         // Closed the loading page
         // await sleep(5000)
         setLoading(false);
+        
+
     } 
   }
 }
@@ -142,21 +150,40 @@ async function fetch_question(question_no,submit){
 
 async function check_face(){
     if (webcamRef.current){
-        if(webcamRef.current.state.hasUserMedia !== false){
+        if(webcamRef.current.state.hasUserMedia != false){
             // const url='http://192.168.0.114:8000/capture'
-            const url=ip_url
+            const url=ip_url+"/capture"
         // const url='http://172.20.10.2:5000/capture'
             const content={
                 image:webcamRef.current.getScreenshot()
                 }
             const response = await axios.post(url,content);
-            console.log(response.data)
+              if(response.data.statuscode===200){
+                setMessage(response.data.response)
+
+                
+              }
+              else{
+                alert(response.data.response)
+              }
         }
         else{
             alert("No Webcam Access available.")
             navigate("/")
         }
     }
+}
+
+async function fetch_timer(){
+  const url=ip_url+'/gettimer'
+  const resp= await axios.get(url);
+  if (resp.data.statuscode===200){
+  console.log(resp.data.response.timer)
+
+    if(resp.data.response.timer!=0){
+      setCounter(resp.data.response.timer)
+    }
+  }
 }
 
 useEffect( () => {
@@ -166,6 +193,7 @@ useEffect( () => {
   })();
 },[])
 
+
 async function clear_all(e){
   e.preventDefault();
   document.getElementById("option_a").checked=false
@@ -174,6 +202,23 @@ async function clear_all(e){
   document.getElementById("option_d").checked=false
 
 }
+
+React.useEffect(() => {
+  counter > 0 && setTimeout(() => setCounter(counter - 1), 1000);
+  if (counter==0) {
+    fetch_question(question_no,true)
+  }
+}, [counter]);
+
+
+function start_monitoring(){
+  fetch_timer()
+  setInterval(async () => {
+    await check_face()
+  }, 5000); 
+}
+
+
 
 return (
     <>
@@ -211,7 +256,9 @@ return (
                     <button className="formFieldLink t-md hover:text-[#D61C4E] transition ease-in-out bg-[#D61C4E] px-10 py-1.5 rounded-lg hover:bg-white"
                     onClick={()=>{setShow(!show)
                               setButton(false)
-                              fetch_question(1,false)}}>
+                              fetch_question(1,false)
+                              
+                              }}>
                         Start Exam
                     </button>
                   </div>
@@ -313,8 +360,8 @@ return (
                       </div>
                     </div>
                   </form>
-                  <div className="absolute right-3 top-[10vh] " >
-                    <Webcam className="border-white rounded-lg"
+                  <div className="absolute right-3 top-[10vh] text-center grid" >
+                    <Webcam className="border-white rounded-lg m-2"
                     audio={false}
                     height={100}
                     ref={webcamRef}
@@ -322,11 +369,16 @@ return (
                     width={175}
                     videoConstraints={videoConstraints}
                     />
+                    <span className="camera_message text-white">{message}</span>
+                    <span className="timer_message text-white" id="timer">{counter}</span>
                   </div>
                 </>
               )}
           </>)}
+    
     </>
+    
+      
    );
 }
 
