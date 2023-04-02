@@ -11,32 +11,10 @@ const ip_url=process.env.REACT_APP_IP_ADDRESS
 const searchParams = new URLSearchParams(document.location.search)
 const admin_id=searchParams.get('admin_id')
 
+
 function Admin() {
 
-  class TableRowQuestions extends Component {
-    render() {
-        var row = this.props.row;
-        // console.log(row)
-        return (
-            <tr scope="col" className="text-md text-gray-900 px-6 py-4 text-center" id={row[0]}>
-                {row.map(val => <td  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style={{border:'1px solid black'}}>{val}</td>)}
-                <td className="px-6 whitespace-nowrap text-sm text-blue-900" style={{border:'1px solid black'}}> <button className="bg-sky-300 rounded-full w-[50px] p-1 hover:bg-white hover:text-sky-500">Edit</button></td>
-                <td className="px-6 whitespace-nowrap text-sm text-red-900" style={{border:'1px solid black'}}> <button className="bg-rose-300 rounded-full w-[70px] p-1 hover:bg-white hover:text-red-500" onClick={(e)=> deleteQuestion(e,row[0])}>Delete</button></td>
-            </tr>
-        )
-    }
-  }
   
-  class TableRowAnswers extends Component {
-    render() {
-        var row = this.props.row;
-        return (
-            <tr scope="col" className="text-md text-gray-900 px-6 py-4 text-center">
-                {row.map(val => <td  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style={{border:'1px solid black'}}>{val}</td>)}
-            </tr>
-        )
-    }
-  }
   let navigate = useNavigate();
 
   const input_style={
@@ -94,6 +72,32 @@ function Admin() {
     }
     if(id==="timer"){
       setTimer(value)
+    }
+  }
+
+  class TableRowQuestions extends Component {
+    render() {
+        let row = this.props.row;
+        // console.log(row)
+        return (
+            <tr scope="col" className="text-md text-gray-900 px-6 py-4 text-center" id={row[0]} key={row[0]}>
+                {row.map(val => 
+                  <td  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style={{border:'1px solid black'}}>{val} key={val}</td>)}
+                  <td className="px-6 whitespace-nowrap text-sm text-blue-900" style={{border:'1px solid black'}}> <button className="bg-sky-300 rounded-full w-[50px] p-1 hover:bg-white hover:text-sky-500">Edit</button></td>
+                  <td className="px-6 whitespace-nowrap text-sm text-red-900" style={{border:'1px solid black'}}> <button className="bg-rose-300 rounded-full w-[70px] p-1 hover:bg-white hover:text-red-500" onClick={(e)=> deleteQuestion(e,row[0])}>Delete</button></td>
+            </tr>
+        )
+    }
+  }
+  
+  class TableRowAnswers extends Component {
+    render() {
+        let row = this.props.row;
+        return (
+            <tr scope="col" className="text-md text-gray-900 px-6 py-4 text-center">
+                {row.map(val => <td  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style={{border:'1px solid black'}}>{val} ke</td>)}
+            </tr>
+        )
     }
   }
 
@@ -366,8 +370,8 @@ function Admin() {
                 onClick={async ()=>{
                   if(!getAllQuestions){
                     await setGetAllQuestions(!getAllQuestions);
-                    await setStudentAnswers(false);
                     await fetch_all_questions(true);
+                    await setStudentAnswers(false);
 
                   }
                   else{
@@ -381,7 +385,7 @@ function Admin() {
                   {!getAllQuestions? (""
                   ):
                   (
-                    questions_internalloader?(
+                    questions_internalloader ? (
                       <div className="flex justify-center items-center align-middle h-[80vh] ">
                       <div className="spinner-border animate-spin inline-block w-12 h-12 border-4 rounded-full text-[#D61C4E] transition ease-in-out" role="status">
                       </div>
@@ -409,7 +413,7 @@ function Admin() {
                                       </tr>
                                     </thead>
                                     <tbody>
-                                        {tablebody.map(row => <TableRowQuestions row={row} />)}
+                                        {tablebody.map(row => <TableRowQuestions row={row}/> , console.log(row))}
                                     </tbody>
                                   </table>
                                 </div>
@@ -431,8 +435,8 @@ function Admin() {
                 onClick={async ()=>{
                   if(!studentAnswers){
                     await setStudentAnswers(!studentAnswers);
-                    await setGetAllQuestions(false);
                     await fetch_all_student_answers();
+                    await setGetAllQuestions(false);
                   }
                   else{
                     await setStudentAnswers(!studentAnswers);

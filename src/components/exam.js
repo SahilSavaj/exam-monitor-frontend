@@ -24,7 +24,7 @@ const Exam =() => {
     const [option_d,setOption_d]=useState('')
     const [ans,setAns]=useState('')
     const [message,setMessage]=useState('')
-    const [timer,setTimer]=useState(0)
+    // const [timer,setTimer]=useState(0)
     const [counter, setCounter] = React.useState(-1);
     const searchParams = new URLSearchParams(document.location.search)
     const sapid=searchParams.get('sapid')
@@ -212,7 +212,7 @@ React.useEffect(() => {
 
 
 function start_monitoring(){
-  fetch_timer()
+  // fetch_timer()
   setInterval(async () => {
     await check_face()
   }, 5000); 
@@ -370,7 +370,7 @@ return (
                     videoConstraints={videoConstraints}
                     />
                     <span className="camera_message text-white">{message}</span>
-                    <span className="timer_message text-white" id="timer">{counter}</span>
+                    {/* <span className="timer_message text-white" id="timer">{counter}</span> */}
                   </div>
                 </>
               )}
