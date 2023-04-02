@@ -46,13 +46,13 @@ const Login =() => {
         password:password,
         image:webcamRef.current.getScreenshot(),
       }
-    console.log(content);
+    // console.log(content);
     const url=ip_url+"/login"
         await axios.post(url, content)
         .then(response => {
-          console.log(response.data)
+          // console.log(response.data)
             if (response.data.statuscode===200){
-				console.log(response.data.response.sapid)
+				// console.log(response.data.response.sapid)
 				if(response.data.response.is_admin){
 				alert("Admin Login Successful!")
 				navigate({
@@ -76,7 +76,8 @@ const Login =() => {
           }
           )
         .catch(error => {
-        console.error('There was an error!', error);
+          alert('There was an error!');
+        // console.error('There was an error!', error);
         });
       
     }

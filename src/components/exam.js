@@ -1,8 +1,9 @@
 import React, { useState ,useEffect} from "react";
-// import '../page-styles/Forms.css'
+// import '../page-styles/Forms.css
 import Webcam from "react-webcam";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
+import bg_img from "./static/bg.jpg"
 
 
 const ip_url=process.env.REACT_APP_IP_ADDRESS
@@ -12,23 +13,37 @@ const sleep = ms => new Promise(
   );
 
 const Exam =() => {
-    const [show,setShow]=useState(false);
-    const [button,setButton]=useState(true)
-    const [buffer,setbuffer]=useState(false);
-    const [loading, setLoading] = useState(false);
-    const [question_no,setQuestion_no]=useState(1);
-    const [question,setQuestion]=useState('');
-    const [option_a,setOption_a]=useState('')
-    const [option_b,setOption_b]=useState('')
-    const [option_c,setOption_c]=useState('')
-    const [option_d,setOption_d]=useState('')
-    const [ans,setAns]=useState('')
-    const [message,setMessage]=useState('')
+    let [show,setShow]=useState(false);
+    let [button,setButton]=useState(true)
+    let [buffer,setbuffer]=useState(false);
+    let [loading, setLoading] = useState(false);
+    let [question_no,setQuestion_no]=useState(1);
+    let [question,setQuestion]=useState('');
+    let [option_a,setOption_a]=useState('')
+    let [option_b,setOption_b]=useState('')
+    let [option_c,setOption_c]=useState('')
+    let [option_d,setOption_d]=useState('')
+    let [ans,setAns]=useState('')
+    let [message,setMessage]=useState('')
+
+    let [exam_over, setExamOver] = React.useState(false);
     // const [timer,setTimer]=useState(0)
     const [counter, setCounter] = React.useState(-1);
     const searchParams = new URLSearchParams(document.location.search)
     const sapid=searchParams.get('sapid')
     let navigate = useNavigate();
+
+
+    const main_style={
+      background:`url(${bg_img})`,
+      opacity:0.5,
+      width:"100vw",
+      height:"100vh",
+      'objectfit':'cover'
+    }
+    const mask_style={
+      background:"rgba(0,0,0,0.9)"
+    }
 
     const videoConstraints = {
         width: 1280,
@@ -67,11 +82,11 @@ const Exam =() => {
      
   const handleSubmit  = async (e) => {
     e.preventDefault();
-    fetch_question(parseInt(question_no),true)
+    fetch_question(parseInt(question_no),true,e)
   }
 
 
-async function fetch_question(question_no,submit){
+async function fetch_question(question_no,submit,e){
   setLoading(true);
   // const url='http://192.168.0.100:8000/exam'
   const url=ip_url+'/exam'
@@ -82,9 +97,9 @@ async function fetch_question(question_no,submit){
         sapid:sapid,
         ans:ans
         }
-    console.log(content)
+    // console.log(content)
     const response = await axios.post(url,content);
-    console.log(response.data)
+    // console.log(response.data)
     if (response.data.statuscode!==200){
             alert("Something went Wrong. Please Retry Previous question.")
             // setNum(num-1)
@@ -93,9 +108,13 @@ async function fetch_question(question_no,submit){
         const get_resp = await axios.get(url+"?&sapid="+sapid);
         setLoading(true);
         if(get_resp.data.response.exam_done===true){
+          setExamOver(true)
         alert("All questions are answered. Thankyou")
         navigate("/")
+        e.stopPropagation();
+
           }
+
         else if(get_resp.data.statuscode===404){
           alert(get_resp.data.response)
           navigate("/")
@@ -107,9 +126,8 @@ async function fetch_question(question_no,submit){
             setOption_c(get_resp.data.response.optionC)
             setOption_d(get_resp.data.response.optionD)
             setQuestion_no(get_resp.data.response.question_no)
-            start_monitoring()
             await sleep(1000)
-            console.log(get_resp.data.response)
+            // console.log(get_resp.data.response)
             // Closed the loading page
             setLoading(false);
             
@@ -135,8 +153,7 @@ async function fetch_question(question_no,submit){
         setOption_c(get_resp.data.response.optionC)
         setOption_d(get_resp.data.response.optionD)
         setQuestion_no(get_resp.data.response.question_no)
-        console.log(get_resp.data)
-        start_monitoring()
+        // console.log(get_resp.data)
         await sleep(2000)
         // Closed the loading page
         // await sleep(5000)
@@ -148,7 +165,7 @@ async function fetch_question(question_no,submit){
 }
 
 
-async function check_face(){
+async function check_face(interval){
     if (webcamRef.current){
         if(webcamRef.current.state.hasUserMedia != false){
             // const url='http://192.168.0.114:8000/capture'
@@ -170,6 +187,8 @@ async function check_face(){
         else{
             alert("No Webcam Access available.")
             navigate("/")
+            clearInterval(interval)
+            return false
         }
     }
 }
@@ -178,7 +197,7 @@ async function fetch_timer(){
   const url=ip_url+'/gettimer'
   const resp= await axios.get(url);
   if (resp.data.statuscode===200){
-  console.log(resp.data.response.timer)
+  // console.log(resp.data.response.timer)
 
     if(resp.data.response.timer!=0){
       setCounter(resp.data.response.timer)
@@ -204,24 +223,55 @@ async function clear_all(e){
 }
 
 React.useEffect(() => {
-  counter > 0 && setTimeout(() => setCounter(counter - 1), 1000);
+  // counter > 0 && setTimeout(() => setCounter(counter - 1), 1000);
   if (counter==0) {
     fetch_question(question_no,true)
   }
 }, [counter]);
 
 
+
+function openFullscreen(interval) {
+  let elem = document.getElementById("exam");
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen();
+  } else if (elem.webkitRequestFullscreen) { /* Safari */
+    elem.webkitRequestFullscreen();
+  } else if (elem.msRequestFullscreen) { /* IE11 */
+    elem.msRequestFullscreen();
+  }
+  if (interval){
+    clearInterval(interval)
+  }
+}
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+
 function start_monitoring(){
-  // fetch_timer()
-  setInterval(async () => {
-    await check_face()
-  }, 5000); 
+  let interval=setInterval(async () => {
+    if(!document.fullscreenElement){
+      clearInterval(interval)
+      console.log(exam_over)
+      if (!exam_over){
+        alert("Don't try exit full screen")
+      navigate("/")
+      }
+      
+    }
+    if(document.readyState === 'complete'){
+      // console.log("hhee")
+      await check_face(interval)
+    }
+  }, 1000); 
 }
 
 
 
+
 return (
-    <>
+       
+      <div id="exam" style={ !window.fullScreen ? {"hsh":"asd"}:main_style}>
         {!buffer ? (
             <div className="flex justify-center items-center align-middle h-[80vh]">
               <div className="spinner-border animate-spin inline-block w-12 h-12 border-4 rounded-full text-[#D61C4E]" role="status">
@@ -254,17 +304,19 @@ return (
                 <div className="form-group mb-6">
                   <div className="submit_button flex align-middle text-white justify-center space-x-2 items-center text-xl p-t-5">
                     <button className="formFieldLink t-md hover:text-[#D61C4E] transition ease-in-out bg-[#D61C4E] px-10 py-1.5 rounded-lg hover:bg-white"
-                    onClick={()=>{setShow(!show)
+                    onClick={(e)=>{
+                              openFullscreen()
+                              setShow(!show)
                               setButton(false)
-                              fetch_question(1,false)
-                              
+                              fetch_question(1,false,e)
+                              start_monitoring()
                               }}>
                         Start Exam
                     </button>
                   </div>
                 </div>
               </div>
-              <div className="absolute right-3 top-[10vh]" >
+              {/* <div className="absolute right-3 top-[10vh]" >
                 <Webcam className="border-white rounded-lg"
                 audio={false}
                 height={100}
@@ -273,20 +325,31 @@ return (
                 width={175}
                 videoConstraints={videoConstraints}
                 />
-              </div>
+              </div> */}
               </>}
             </>
             )
             }
+            <div className="absolute right-3 top-[10vh] text-center grid" >
+                <Webcam className="border-white rounded-lg m-2"
+                audio={false}
+                height={100}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                width={175}
+                videoConstraints={videoConstraints}
+                />
+                <span className="camera_message text-white">{message}</span>
+                {/* <span className="timer_message text-white" id="timer">{counter}</span> */}
+              </div>
             {button ? (<></>) :
-            (<>
+            (<div>
               {loading ? (
                 <div className="flex justify-center items-center align-middle h-[80vh]">
                   <div className="spinner-border animate-spin inline-block w-12 h-12 border-4 rounded-full text-[#D61C4E]" role="status">
-                    <span className="visually-hidden">Loading...</span>
                   </div>
                 </div>) :
-              (<>
+              (<div className="py-20">
                 <div className="page_heading flex justify-center align-start text-[#D61C4E] font-sans text-[2vw]">
                       Questions
                 </div>
@@ -360,23 +423,12 @@ return (
                       </div>
                     </div>
                   </form>
-                  <div className="absolute right-3 top-[10vh] text-center grid" >
-                    <Webcam className="border-white rounded-lg m-2"
-                    audio={false}
-                    height={100}
-                    ref={webcamRef}
-                    screenshotFormat="image/jpeg"
-                    width={175}
-                    videoConstraints={videoConstraints}
-                    />
-                    <span className="camera_message text-white">{message}</span>
-                    {/* <span className="timer_message text-white" id="timer">{counter}</span> */}
-                  </div>
-                </>
+                  
+                </div>
               )}
-          </>)}
+          </div>)}
     
-    </>
+    </div>
     
       
    );

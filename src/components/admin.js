@@ -82,9 +82,9 @@ function Admin() {
         return (
             <tr scope="col" className="text-md text-gray-900 px-6 py-4 text-center" id={row[0]} key={row[0]}>
                 {row.map(val => 
-                  <td  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style={{border:'1px solid black'}}>{val} key={val}</td>)}
-                  <td className="px-6 whitespace-nowrap text-sm text-blue-900" style={{border:'1px solid black'}}> <button className="bg-sky-300 rounded-full w-[50px] p-1 hover:bg-white hover:text-sky-500">Edit</button></td>
-                  <td className="px-6 whitespace-nowrap text-sm text-red-900" style={{border:'1px solid black'}}> <button className="bg-rose-300 rounded-full w-[70px] p-1 hover:bg-white hover:text-red-500" onClick={(e)=> deleteQuestion(e,row[0])}>Delete</button></td>
+                  <td  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style={{border:'1px solid black'}} key={val} >{val} </td>)}
+                  <td className="px-6 whitespace-nowrap text-sm text-blue-900" style={{border:'1px solid black'}}> <button className="bg-sky-300 rounded-full w-[50px] p-1 hover:bg-white hover:text-sky-500" >Edit</button></td>
+                  <td className="px-6 whitespace-nowrap text-sm text-red-900" style={{border:'1px solid black'}}> <button className="bg-rose-300 rounded-full w-[70px] p-1 hover:bg-white hover:text-red-500"  onClick={(e)=> deleteQuestion(e,row[0])}>Delete</button></td>
             </tr>
         )
     }
@@ -125,6 +125,7 @@ function Admin() {
       alert(resp.data.response.status)
       }
       const data=resp.data.response.questions
+      
       setTableBody(data.slice(1))
       setQuestions_internalloader(false)
     }
@@ -145,11 +146,12 @@ function Admin() {
       alert(resp.data.response.status)
       const data=resp.data.response.answers
       if(data){
+        console.log(data)
+        console.log(data.slice(1))
         setTableBody(data.slice(1))
         setAnswers_internalloader(false)
       }
-      setStudentAnswers(false);
-      setAnswers_internalloader(false)
+      else setAnswers_internalloader(false)
 
     }
     else{
@@ -267,7 +269,7 @@ function Admin() {
       console.log(response.data)
       if (response.data.statuscode===200){
           alert(response.data.response)
-          setTimer(timer)
+          // setTimer(timer)
           setTimer_internalloader(true)
       }
       else{
@@ -413,7 +415,7 @@ function Admin() {
                                       </tr>
                                     </thead>
                                     <tbody>
-                                        {tablebody.map(row => <TableRowQuestions row={row}/> , console.log(row))}
+                                        {tablebody.map(row => <TableRowQuestions row={row} key={row[0]}/>)}
                                     </tbody>
                                   </table>
                                 </div>
@@ -470,6 +472,7 @@ function Admin() {
                                       </tr>
                                     </thead>
                                     <tbody>
+                                      {console.log(tablebody)}
                                         {tablebody.map(row => <TableRowAnswers row={row} />)}
                                     </tbody>
                                   </table>
