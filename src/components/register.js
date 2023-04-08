@@ -181,7 +181,7 @@ const Register =() => {
                           <input className="form-control border-[#D61C4E] border-solid pl-3 py-1.5 w-[30vw] col-span-10 m-0 bg-transparent 
                           transition ease-in-out text-base focus:text-white focus:bg-transparent focus:border-black focus:outline-none focus:rounded" 
                             style={input_style}
-                            type="text" 
+                            type="password" 
                             id="password" 
                             placeholder="Enter your password" 
                             name="password" 

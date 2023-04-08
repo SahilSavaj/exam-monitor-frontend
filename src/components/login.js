@@ -62,10 +62,19 @@ const Login =() => {
 				}
 				else{
 					alert(response.data.response.status)
-					navigate({
-					pathname: '/exam',
-					search: '?sapid='+response.data.response.sapid,
-				})
+          if(response.data.response.exam_type==="objective"){
+							navigate({
+							pathname: '/exam',
+							search: '?sapid='+response.data.response.sapid,
+						})
+					}
+          else{
+							navigate({
+							pathname: '/code',
+							search: '?sapid='+response.data.response.sapid,
+						})
+					}
+				
 				}
               
             }
@@ -128,7 +137,7 @@ const Login =() => {
                         <input className="form-control border-[#D61C4E] border-solid pl-3 py-1.5 w-[30vw] col-span-10 m-0 bg-transparent 
                         transition ease-in-out text-base focus:text-white focus:bg-transparent focus:border-black focus:outline-none focus:rounded" 
                           style={input_style}
-                          type="text" 
+                          type="password" 
                           id="password" 
                           placeholder="Enter your password" 
                           name="password" 
