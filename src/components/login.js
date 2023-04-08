@@ -46,13 +46,13 @@ const Login =() => {
         password:password,
         image:webcamRef.current.getScreenshot(),
       }
-    console.log(content);
+    // console.log(content);
     const url=ip_url+"/login"
         await axios.post(url, content)
         .then(response => {
-          console.log(response.data)
+          // console.log(response.data)
             if (response.data.statuscode===200){
-				console.log(response.data.response.sapid)
+				// console.log(response.data.response.sapid)
 				if(response.data.response.is_admin){
 				alert("Admin Login Successful!")
 				navigate({
@@ -62,10 +62,19 @@ const Login =() => {
 				}
 				else{
 					alert(response.data.response.status)
-					navigate({
-					pathname: '/exam',
-					search: '?sapid='+response.data.response.sapid,
-				})
+          if(response.data.response.exam_type==="objective"){
+							navigate({
+							pathname: '/exam',
+							search: '?sapid='+response.data.response.sapid,
+						})
+					}
+          else{
+							navigate({
+							pathname: '/code',
+							search: '?sapid='+response.data.response.sapid,
+						})
+					}
+				
 				}
               
             }
@@ -76,7 +85,8 @@ const Login =() => {
           }
           )
         .catch(error => {
-        console.error('There was an error!', error);
+          alert('There was an error!');
+        // console.error('There was an error!', error);
         });
       
     }
@@ -127,7 +137,7 @@ const Login =() => {
                         <input className="form-control border-[#D61C4E] border-solid pl-3 py-1.5 w-[30vw] col-span-10 m-0 bg-transparent 
                         transition ease-in-out text-base focus:text-white focus:bg-transparent focus:border-black focus:outline-none focus:rounded" 
                           style={input_style}
-                          type="text" 
+                          type="password" 
                           id="password" 
                           placeholder="Enter your password" 
                           name="password" 
