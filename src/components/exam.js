@@ -122,11 +122,12 @@ const Exam = () => {
 					setOption_c(get_resp.data.response.optionC);
 					setOption_d(get_resp.data.response.optionD);
 					setQuestion_no(get_resp.data.response.question_no);
-					await sleep(1000);
-					setLoading(false);
+					// await sleep(1000);
 					clear_all_options();
 					setAns("");
+					setLoading(false);
 					fetch_timer();
+
 				}
 			}
 		} else {

@@ -24,6 +24,7 @@ function Admin() {
 		useState(true);
 	const [answers_internalloader, setAnswers_internalloader] = useState(true);
 	const [timer_internalloader, setTimer_internalloader] = useState(true);
+	const [marks_internalloader, setMarks_internalloader] = useState(true);
 	const [studentAnswers, setStudentAnswers] = useState(false);
 	const [listOfStudents, setListOfStudents] = useState(false);
 	const [getAllQuestions, setGetAllQuestions] = useState(false);
@@ -40,7 +41,7 @@ function Admin() {
 	const [answer, setAnswer] = useState("");
 
 	const [timer, setTimer] = useState("");
-
+	const [marksconfig, setMarksConfig] = useState("");
 	const [file, setFile] = useState();
 
 	const handleInputChange = (e) => {
@@ -67,6 +68,9 @@ function Admin() {
 		if (id === "timer") {
 			setTimer(value);
 		}
+		if (id === "marksconfig") {
+			setMarksConfig(value);
+		}
 	};
 
 	class TableRowQuestions extends Component {
@@ -80,13 +84,13 @@ function Admin() {
 					id={row[0]}
 					key={row[0]}
 				>
-					{row.map((val) => (
+					{row.map((currElement, index) => (
 						<td
 							className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
 							style={{ border: "1px solid black" }}
-							key={val}
+							key={index}
 						>
-							{val}{" "}
+							{currElement}{" "}
 						</td>
 					))}
 					<td
@@ -120,12 +124,13 @@ function Admin() {
 			let row = this.props.row;
 			return (
 				<tr scope="col" className="text-md text-gray-900 px-6 py-4 text-center">
-					{row.map((val) => (
+					{row.map((currElement, index) => (
 						<td
 							className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
 							style={{ border: "1px solid black" }}
+							key={index}
 						>
-							{val}
+							{currElement}
 						</td>
 					))}
 				</tr>
@@ -158,6 +163,7 @@ function Admin() {
 			setTableBody(data.slice(1));
 			setQuestions_internalloader(false);
 		} else {
+			setGetAllQuestions(false);	
 			setQuestions_internalloader(false);
 		}
 	}
@@ -174,12 +180,16 @@ function Admin() {
 			alert(resp.data.response.status);
 			const data = resp.data.response.answers;
 			if (data) {
-				console.log(data);
+				console.log("a,bsda,sbnd,a");
 				console.log(data.slice(1));
 				setTableBody(data.slice(1));
 				setAnswers_internalloader(false);
-			} else setAnswers_internalloader(false);
+			} else{
+				setStudentAnswers(false);
+				setAnswers_internalloader(false);
+			} 
 		} else {
+			setStudentAnswers(false);
 			setAnswers_internalloader(false);
 		}
 	}
@@ -205,8 +215,8 @@ function Admin() {
 	}
 
 	async function handleSubmit(e) {
-		await setGetAllQuestions(false);
-		await setStudentAnswers(false);
+		setGetAllQuestions(false);
+		setStudentAnswers(false);
 		e.preventDefault();
 		const searchParams = new URLSearchParams(document.location.search);
 		const admin_id = searchParams.get("admin_id");
@@ -251,21 +261,19 @@ function Admin() {
 		const url = ip_url + "/admin/addquestion/file";
 		let headers = {
 			"Content-type": "application/json",
-			"admin-id":admin_id
+			"admin-id": admin_id,
 		};
-		let data=new FormData()
-		await data.append("data",file);
+		let data = new FormData();
+		await data.append("data", file);
 		const resp = await axios.post(url, data, { headers });
-			console.log(resp.data);
-			if (resp.data.statuscode === 200) {
-				alert(resp.data.response);
-			} else {
-				alert(resp.data.response);
-				navigate("/admin", { admin_id: admin_id });
-			}
+		console.log(resp.data);
+		if (resp.data.statuscode === 200) {
+			alert(resp.data.response);
+		} else {
+			alert(resp.data.response);
+			navigate("/admin", { admin_id: admin_id });
 		}
-		
-	
+	}
 
 	async function updateTimer(e) {
 		e.preventDefault();
@@ -296,6 +304,35 @@ function Admin() {
 				console.error("There was an error!", error);
 			});
 	}
+	async function updateAllmarks(e) {
+		e.preventDefault();
+		await setMarks_internalloader(false);
+		console.log(marksconfig);
+		const searchParams = new URLSearchParams(document.location.search);
+		const admin_id = searchParams.get("admin_id");
+		let content = {
+			admin_id: admin_id,
+			marks: marksconfig,
+		};
+		console.log(content);
+		const url = ip_url + "/admin/seteachmarks";
+		await axios
+			.post(url, content)
+			.then((response) => {
+				console.log(response.data);
+				if (response.data.statuscode === 200) {
+					alert(response.data.response);
+					// setTimer(timer)
+					setMarks_internalloader(true);
+				} else {
+					alert(response.data.response);
+					navigate("/admin", { admin_id: admin_id });
+				}
+			})
+			.catch((error) => {
+				console.error("There was an error!", error);
+			});
+	}
 
 	useEffect(() => {
 		(async () => {
@@ -311,6 +348,10 @@ function Admin() {
 					// alert(get_resp.data.response)
 					setLoading(true);
 					setTimer(get_resp.data.response.timer);
+					if (get_resp.data.response.is_common_marks===true){
+						setMarksConfig(get_resp.data.response.marks)
+					}
+					
 				} else {
 					alert(get_resp.data.response);
 					navigate("/");
@@ -337,43 +378,82 @@ function Admin() {
 					<div className="page_heading flex justify-center align-start text-[#D61C4E] font-sans text-[3vw]">
 						Admin
 					</div>
-					<div className="main_content flex my-5 flex-col container mx-auto w-[100vw] h-[fit-content] space-y-5">
-						<div className="timer-content flex flex-row align-middle space-x-5 items-center">
-							<div className="timer_settings text-[1.5vw] text-white hover:cursor-default">
-								Timer for each question -
-							</div>
-							<div className="timer_display space-x-1 flex flex-row py-1.5">
-								<input
-									className="timer w-[4vw] bg-white h-8 text-white text-lg p-2 placeholder:text-white bg-transparent"
-									style={input_style}
-									type="number"
-									name="timer"
-									id="timer"
-									value={timer}
-									placeholder={timer}
-									onChange={(e) => handleInputChange(e)}
-								></input>
-								<span className="text-[1.2vw] text-white hover:cursor-default">
-									secs
-								</span>
-							</div>
-
-							<button
-								className="flex w-[fit-content] align-middle py-1.5 px-5 text-lg rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white]"
-								onClick={(e) => updateTimer(e)}
-							>
-								Change
-							</button>
-							{!timer_internalloader ? (
-								<div className="flex justify-center items-center align-middle">
-									<div
-										className="spinner-border animate-spin inline-block w-5 h-5 border-4 rounded-full text-[#D61C4E] transition ease-in-out"
-										role="status"
-									></div>
+					<div className="main_content flex my-10 flex-col container mx-auto w-[100vw] h-[fit-content] space-y-5">
+						<div className="configs flex flex-col justify-start space-y-5">
+							<div className="timer-content flex flex-row align-middle space-x-5 items-center">
+								<div className="timer_settings text-[1.5vw] text-white hover:cursor-default">
+									Timer for each question -
 								</div>
-							) : (
-								""
-							)}
+								<div className="timer_display space-x-1 flex flex-row py-1.5">
+									<input
+										className="timer w-[4vw] bg-white h-8 text-white text-lg p-2 placeholder:text-white bg-transparent"
+										style={input_style}
+										type="number"
+										name="timer"
+										id="timer"
+										value={timer}
+										placeholder={timer}
+										onChange={(e) => handleInputChange(e)}
+									></input>
+									<span className="text-[1.2vw] text-white hover:cursor-default">
+										secs
+									</span>
+								</div>
+
+								<button
+									className="flex w-[fit-content] align-middle py-1.5 px-5 text-lg rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white]"
+									onClick={(e) => updateTimer(e)}
+								>
+									Change
+								</button>
+								{!timer_internalloader ? (
+									<div className="flex justify-center items-center align-middle">
+										<div
+											className="spinner-border animate-spin inline-block w-5 h-5 border-4 rounded-full text-[#D61C4E] transition ease-in-out"
+											role="status"
+										></div>
+									</div>
+								) : (
+									""
+								)}
+							</div>
+							<div className="marks-content flex flex-row align-middle space-x-5 items-center">
+								<div className="marks_settings text-[1.5vw] text-white hover:cursor-default">
+									Marks for each question -
+								</div>
+								<div className="marks_display space-x-1 flex flex-row py-1.5">
+									<input
+										className="marks w-[4vw] bg-white h-8 text-white text-lg p-2 placeholder:text-white bg-transparent"
+										style={input_style}
+										type="number"
+										name="marksconfig"
+										id="marksconfig"
+										value={marksconfig}
+										placeholder={marksconfig}
+										onChange={(e) => handleInputChange(e)}
+									></input>
+									<span className="text-[1.2vw] text-white hover:cursor-default">
+										mks
+									</span>
+								</div>
+
+								<button
+									className="flex w-[fit-content] align-middle py-1.5 px-5 text-lg rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white]"
+									onClick={(e) => updateAllmarks(e)}
+								>
+									Change
+								</button>
+								{!marks_internalloader ? (
+									<div className="flex justify-center items-center align-middle">
+										<div
+											className="spinner-border animate-spin inline-block w-5 h-5 border-4 rounded-full text-[#D61C4E] transition ease-in-out"
+											role="status"
+										></div>
+									</div>
+								) : (
+									""
+								)}
+							</div>
 						</div>
 
 						<div className="all_questions">
@@ -386,12 +466,12 @@ function Admin() {
 									className="flex justify-center px-1 py-1.5 w-[10vw] rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white] "
 									onClick={async () => {
 										if (!getAllQuestions) {
-											await setGetAllQuestions(!getAllQuestions);
+											setGetAllQuestions(!getAllQuestions);
 											await fetch_all_questions(true);
-											await setStudentAnswers(false);
+											setStudentAnswers(false);
 										} else {
-											await setGetAllQuestions(!getAllQuestions);
-											await setQuestions_internalloader(true);
+											setGetAllQuestions(!getAllQuestions);
+											setQuestions_internalloader(true);
 										}
 									}}
 								>
@@ -506,12 +586,12 @@ function Admin() {
 									className="flex justify-center px-1 py-1.5 w-[10vw] rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white] "
 									onClick={async () => {
 										if (!studentAnswers) {
-											await setStudentAnswers(!studentAnswers);
+											setStudentAnswers(!studentAnswers);
 											await fetch_all_student_answers();
-											await setGetAllQuestions(false);
+											setGetAllQuestions(false);
 										} else {
-											await setStudentAnswers(!studentAnswers);
-											await setAnswers_internalloader(true);
+											setStudentAnswers(!studentAnswers);
+											setAnswers_internalloader(true);
 										}
 									}}
 								>
@@ -694,9 +774,7 @@ function Admin() {
 									</div>
 									<div className="form-group mb-6 space-y-5">
 										<div className="input_field flex flex-col align-middle justify-center text-white space-y-10 items-center text-2xl ">
-											<label className="w-[fit-content]">
-												Upload the csv
-											</label>
+											<label className="w-[fit-content]">Upload the csv</label>
 											<input
 												className="form-control border-solid pl-3 py-1.5 m-0 bg-transparent 
                     									transition ease-in-out text-base focus:text-white focus:bg-transparent focus:border-black focus:outline-none focus:rounded"
