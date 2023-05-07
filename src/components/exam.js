@@ -10,20 +10,23 @@ const ip_url = process.env.REACT_APP_IP_ADDRESS;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const Exam = () => {
-	let [show, setShow] = useState(false);
-	let [button, setButton] = useState(true);
-	let [buffer, setbuffer] = useState(false);
-	let [loading, setLoading] = useState(false);
-	let [question_no, setQuestion_no] = useState(1);
-	let [question, setQuestion] = useState("");
-	let [option_a, setOption_a] = useState("");
-	let [option_b, setOption_b] = useState("");
-	let [option_c, setOption_c] = useState("");
-	let [option_d, setOption_d] = useState("");
-	let [ans, setAns] = useState("");
-	let [message, setMessage] = useState("");
+	const [show, setShow] = useState(false);
+	const [button, setButton] = useState(true);
+	const [buffer, setbuffer] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [question_no, setQuestion_no] = useState(1);
+	const [question, setQuestion] = useState("");
+	const [option_a, setOption_a] = useState("");
+	const [option_b, setOption_b] = useState("");
+	const [option_c, setOption_c] = useState("");
+	const [option_d, setOption_d] = useState("");
+	const [ans, setAns] = useState("");
+	const [message, setMessage] = useState("");
+	const [uploadPdf, setUploadPdf] = useState(false);
 
-	let [counter, setCounter] = React.useState(null);
+
+
+	const [counter, setCounter] = React.useState(null);
 	const searchParams = new URLSearchParams(document.location.search);
 	const sapid = searchParams.get("sapid");
 	let navigate = useNavigate();
@@ -82,7 +85,7 @@ const Exam = () => {
 			windowObject.clearTimeout(id);
 			windowObject.clearInterval(id);
 		}
-		function noop() {}
+		function noop() { }
 	}
 
 	async function clear_all_options() {
@@ -108,9 +111,11 @@ const Exam = () => {
 				const get_resp = await axios.get(url + "?&sapid=" + sapid);
 				setLoading(true);
 				if (get_resp.data.response.exam_done === true) {
-					alert("All questions are answered. Thankyou");
+					// alert("All questions are answered. Thankyou");
+					setUploadPdf(true);
+					setLoading(false);
 					clearAll(window);
-					navigate("/");
+					// navigate("/");
 				} else if (get_resp.data.statuscode === 404) {
 					alert(get_resp.data.response);
 					clearAll(window);
@@ -134,9 +139,12 @@ const Exam = () => {
 			const get_resp = await axios.get(url + "?&sapid=" + sapid);
 			setLoading(true);
 			if (get_resp.data.response.exam_done === true) {
-				alert(get_resp.data.response.message);
+				// alert(get_resp.data.response.message);
+				setUploadPdf(true);
+				setLoading(false);
+
 				clearAll(window);
-				navigate("/");
+				// navigate("/");
 			} else if (
 				get_resp.data.statuscode === 404 ||
 				get_resp.data.statuscode === 400
@@ -280,16 +288,6 @@ const Exam = () => {
 									</div>
 								</div>
 							</div>
-							{/* <div className="absolute right-3 top-[10vh]" >
-                <Webcam className="border-white rounded-lg"
-                audio={false}
-                height={100}
-                ref={webcamRef}
-                screenshotFormat="image/jpeg"
-                width={175}
-                videoConstraints={videoConstraints}
-                />
-              </div> */}
 						</>
 					)}
 				</>
@@ -330,87 +328,98 @@ const Exam = () => {
 							</div>
 							<form className="flex felx-col justify-center align-middle items-center">
 								<div className="question_form w-[90vw] py-20">
-									<div className="question flex justify-start text-white text-[1.5vw] p-2 ">
-										{question_no}. {question}
-									</div>
-									<div className="options flex justify-start flex-col text-white text-[1.5vw] p-2 pl-8 space-y-2">
-										<div className="form-check">
-											<label className="">
-												<input
-													className="form-check-input appearance-none rounded-full h-3 w-3 border border-gray-300
+									{!uploadPdf ? (
+										<>
+											<div className="question flex justify-start text-white text-[1.5vw] p-2 ">
+												{question_no}. {question}
+											</div>
+											<div className="options flex justify-start flex-col text-white text-[1.5vw] p-2 pl-8 space-y-2">
+												<div className="form-check">
+													<label className="">
+														<input
+															className="form-check-input appearance-none rounded-full h-3 w-3 border border-gray-300
                             bg-white checked:border-[#D61C4E] focus:outline-none  bg-no-repeat bg-center 
                             bg-contain mr-2 cursor-pointer checked:bg-[#D61C4E]"
-													type="radio"
-													id="option_a"
-													value={option_a}
-													onChange={(e) => {
-														handleInputChange(e);
-													}}
-												/>
-												{option_a}
-											</label>
-										</div>
-										<div className="form-check">
-											<label className="">
-												<input
-													className="form-check-input appearance-none rounded-full h-3 w-3 border border-gray-300
+															type="radio"
+															id="option_a"
+															value={option_a}
+															onChange={(e) => {
+																handleInputChange(e);
+															}}
+														/>
+														{option_a}
+													</label>
+												</div>
+												<div className="form-check">
+													<label className="">
+														<input
+															className="form-check-input appearance-none rounded-full h-3 w-3 border border-gray-300
                             bg-white checked:border-[#D61C4E] focus:outline-none  bg-no-repeat bg-center 
                             bg-contain mr-2 cursor-pointer checked:bg-[#D61C4E]"
-													type="radio"
-													id="option_b"
-													value={option_b}
-													onChange={(e) => {
-														handleInputChange(e);
-													}}
-												/>
-												{option_b}
-											</label>
-										</div>
-										<div className="form-check">
-											<label className="">
-												<input
-													className="form-check-input appearance-none rounded-full h-3 w-3 border border-gray-300
+															type="radio"
+															id="option_b"
+															value={option_b}
+															onChange={(e) => {
+																handleInputChange(e);
+															}}
+														/>
+														{option_b}
+													</label>
+												</div>
+												<div className="form-check">
+													<label className="">
+														<input
+															className="form-check-input appearance-none rounded-full h-3 w-3 border border-gray-300
                             bg-white checked:border-[#D61C4E] focus:outline-none  bg-no-repeat bg-center 
                             bg-contain mr-2 cursor-pointer checked:bg-[#D61C4E]"
-													type="radio"
-													id="option_c"
-													value={option_c}
-													onChange={(e) => {
-														handleInputChange(e);
-													}}
-												/>
-												{option_c}
-											</label>
-										</div>
-										<div className="form-check">
-											<label className="">
-												<input
-													className="form-check-input appearance-none rounded-full h-3 w-3 border border-gray-300
+															type="radio"
+															id="option_c"
+															value={option_c}
+															onChange={(e) => {
+																handleInputChange(e);
+															}}
+														/>
+														{option_c}
+													</label>
+												</div>
+												<div className="form-check">
+													<label className="">
+														<input
+															className="form-check-input appearance-none rounded-full h-3 w-3 border border-gray-300
                             bg-white checked:border-[#D61C4E] focus:outline-none  bg-no-repeat bg-center 
                             bg-contain mr-2 cursor-pointer checked:bg-[#D61C4E]"
-													type="radio"
-													id="option_d"
-													value={option_d}
-													onChange={(e) => {
-														handleInputChange(e);
-													}}
-												/>
-												{option_d}
-											</label>
-										</div>
-									</div>
+															type="radio"
+															id="option_d"
+															value={option_d}
+															onChange={(e) => {
+																handleInputChange(e);
+															}}
+														/>
+														{option_d}
+													</label>
+												</div>
+											</div>
+										</>
+									) : (
+										<>
+										</>
+									)}
+
 									<div className="action_buttons flex py-20 space-x-10">
-										<div className="clear_all_butn">
-											<button
-												type="button"
-												className="formFieldLink text-[#D61C4E] hover:text-[white] transition ease-in-out bg-[white] w-[7vw] py-1.5 rounded-lg hover:bg-[#D61C4E]"
-												onClick={() => {
-													clear_all_options();
-												}}
-											>
-												Clear All
-											</button>
-										</div>
+										{!uploadPdf ? (
+											<div className="clear_all_butn">
+												<button
+													type="button"
+													className="formFieldLink text-[#D61C4E] hover:text-[white] transition ease-in-out bg-[white] w-[7vw] py-1.5 rounded-lg hover:bg-[#D61C4E]"
+													onClick={() => {
+														clear_all_options();
+													}}
+												>
+													Clear All
+												</button>
+											</div>
+										) : ""}
+
 										<div className="submit_butn">
 											<button
 												type="button"

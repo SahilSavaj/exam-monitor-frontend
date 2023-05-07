@@ -8,6 +8,56 @@ const ip_url = process.env.REACT_APP_IP_ADDRESS;
 const searchParams = new URLSearchParams(document.location.search);
 const admin_id = searchParams.get("admin_id");
 
+
+class TableRowStudents extends Component {
+	render() {
+		let row = this.props.row;
+		console.log(row)
+		return (
+			<tr scope="col" key={row.id} className="text-md text-gray-900 px-6 py-4 text-center">
+				<td
+					className="text-sm text-gray-900 "
+					style={{ border: "1px solid black" }}
+				>
+					<img src={row.image} className="mx-auto" width={110}></img>
+				</td>
+				<td
+					className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+					style={{ border: "1px solid black" }}
+				>
+					{row.name}
+				</td>
+				<td
+					className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+					style={{ border: "1px solid black" }}
+				>
+					{row.sapid}
+				</td>
+
+				<td
+					className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+					style={{ border: "1px solid black" }}
+				>
+					{row.objectivemarks}
+				</td>
+				<td
+					className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+					style={{ border: "1px solid black" }}
+				>
+					{row.subjectivemarks}
+				</td>
+				<td
+					className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+					style={{ border: "1px solid black" }}
+				>
+					{row.totalmarks}
+				</td>
+
+			</tr>
+		);
+	}
+}
+
 function Admin() {
 	let navigate = useNavigate();
 
@@ -20,8 +70,8 @@ function Admin() {
 	};
 
 	const [loading, setLoading] = useState(false);
-	const [questions_internalloader, setQuestions_internalloader] =
-		useState(true);
+	const [questions_internalloader, setQuestions_internalloader] = useState(true);
+	const [student_marks_internalloader, setStudentMarks_internalloader] = useState(true);
 	const [answers_internalloader, setAnswers_internalloader] = useState(true);
 	const [timer_internalloader, setTimer_internalloader] = useState(true);
 	const [marks_internalloader, setMarks_internalloader] = useState(true);
@@ -43,6 +93,7 @@ function Admin() {
 	const [timer, setTimer] = useState("");
 	const [marksconfig, setMarksConfig] = useState("");
 	const [file, setFile] = useState();
+	const [fileType, setFileType] = useState("");
 
 	const handleInputChange = (e) => {
 		const { id, value } = e.target;
@@ -138,11 +189,25 @@ function Admin() {
 		}
 	}
 
-	const handleFileChange = async (e) => {
-		if (e.target.files) {
-			setFile(e.target.files[0]);
+	class TableRowMarks extends Component {
+		render() {
+			let row = this.props.row;
+			return (
+				<tr scope="col" className="text-md text-gray-900 px-6 py-4 text-center">
+					{row.map((currElement, index) => (
+						<td
+							className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+							style={{ border: "1px solid black" }}
+							key={index}
+						>
+							{currElement}
+						</td>
+					))}
+				</tr>
+			);
 		}
-	};
+	}
+
 
 	async function fetch_all_questions(alert_flag) {
 		setQuestions_internalloader(true);
@@ -163,7 +228,7 @@ function Admin() {
 			setTableBody(data.slice(1));
 			setQuestions_internalloader(false);
 		} else {
-			setGetAllQuestions(false);	
+			setGetAllQuestions(false);
 			setQuestions_internalloader(false);
 		}
 	}
@@ -184,13 +249,38 @@ function Admin() {
 				console.log(data.slice(1));
 				setTableBody(data.slice(1));
 				setAnswers_internalloader(false);
-			} else{
+			} else {
 				setStudentAnswers(false);
 				setAnswers_internalloader(false);
-			} 
+			}
 		} else {
 			setStudentAnswers(false);
 			setAnswers_internalloader(false);
+		}
+	}
+
+	async function fetch_student_marks() {
+		setStudentMarks_internalloader(true);
+		const searchParams = new URLSearchParams(document.location.search);
+		const admin_id = searchParams.get("admin_id");
+		const url = ip_url + "/admin/students";
+		const resp = await axios.get(url + "?admin_id=" + admin_id);
+		console.log(resp.data);
+		await sleep(1000);
+		if (resp.data.statuscode === 200) {
+			alert(resp.data.response.status);
+			const data = resp.data.response.students;
+			if (data) {
+				console.log(data);
+				setTableBody(data);
+				setStudentMarks_internalloader(false);
+			} else {
+				setListOfStudents(false);
+				setStudentMarks_internalloader(false);
+			}
+		} else {
+			setListOfStudents(false);
+			setStudentMarks_internalloader(false);
 		}
 	}
 
@@ -252,9 +342,19 @@ function Admin() {
 			});
 	}
 
+
+
+	const handleFileChange = async (e) => {
+		if (e.target.files) {
+			setFile(e.target.files[0]);
+			setFileType(e.target.files[0].type)
+		}
+	};
+
 	async function handleFileUpload(e) {
-		await setGetAllQuestions(false);
-		await setStudentAnswers(false);
+		console.log(fileType, file)
+		setGetAllQuestions(false);
+		setStudentAnswers(false);
 		e.preventDefault();
 		const searchParams = new URLSearchParams(document.location.search);
 		const admin_id = searchParams.get("admin_id");
@@ -262,9 +362,11 @@ function Admin() {
 		let headers = {
 			"Content-type": "application/json",
 			"admin-id": admin_id,
+			'file-type': fileType
 		};
 		let data = new FormData();
-		await data.append("data", file);
+		data.append("data", file);console.log(data)
+
 		const resp = await axios.post(url, data, { headers });
 		console.log(resp.data);
 		if (resp.data.statuscode === 200) {
@@ -348,10 +450,10 @@ function Admin() {
 					// alert(get_resp.data.response)
 					setLoading(true);
 					setTimer(get_resp.data.response.timer);
-					if (get_resp.data.response.is_common_marks===true){
+					if (get_resp.data.response.is_common_marks === true) {
 						setMarksConfig(get_resp.data.response.marks)
 					}
-					
+
 				} else {
 					alert(get_resp.data.response);
 					navigate("/");
@@ -469,6 +571,7 @@ function Admin() {
 											setGetAllQuestions(!getAllQuestions);
 											await fetch_all_questions(true);
 											setStudentAnswers(false);
+											setListOfStudents(false);
 										} else {
 											setGetAllQuestions(!getAllQuestions);
 											setQuestions_internalloader(true);
@@ -576,6 +679,111 @@ function Admin() {
 								</>
 							)}
 						</div>
+
+						<div className="student_marks">
+							<div className="sub_heading flex text-white text-[1.5vw] pt-5">
+								Student Marks
+							</div>
+							<hr className="py-2"></hr>
+							<div className="get_student_marks flex flex-col justify-start transition duration-150 ease-in-out">
+								<button
+									className="flex justify-center px-1 py-1.5 w-[10vw] rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white] "
+									onClick={async () => {
+										if (!listOfStudents) {
+											setListOfStudents(!listOfStudents);
+											await fetch_student_marks();
+											setStudentAnswers(false);
+											setGetAllQuestions(false);
+
+										} else {
+											setListOfStudents(!listOfStudents);
+											setStudentMarks_internalloader(true);
+										}
+									}}
+								>
+									{!listOfStudents
+										? "Get all Marks"
+										: "Hide all Marks"}
+								</button>
+							</div>
+							{!listOfStudents ? (
+								""
+							) : student_marks_internalloader ? (
+								<div className="flex justify-center items-center align-middle h-[80vh] ">
+									<div
+										className="spinner-border animate-spin inline-block w-12 h-12 border-4 rounded-full text-[#D61C4E] transition ease-in-out"
+										role="status"
+									></div>
+								</div>
+							) : (
+								<>
+									<div className="flex flex-col">
+										<div className="overflow-auto">
+											<div className="py-2 inline-block min-w-fit">
+												<div className="overflow-auto max-h-[50vh]">
+													<table className="min-w-fit bg-[rgba(255,255,255,0.6)] table-auto border-black rounded-lg">
+														<thead className="">
+															<tr className="uppercase">
+																<th
+																	scope="col"
+																	className="text-md text-gray-900 px-6 py-4 text-center font-extrabold"
+																	style={header_style}
+																>
+																	Photo
+																</th>
+																<th
+																	scope="col"
+																	className="text-md text-gray-900 px-6 py-4 text-center w-[1vw] font-extrabold"
+																	style={header_style}
+																>
+																	Student Name
+																</th>
+																<th
+																	scope="col"
+																	className="text-md text-gray-900 px-6 py-4 text-center font-extrabold"
+																	style={header_style}
+																>
+																	Sapid
+																</th>
+
+																<th
+																	scope="col"
+																	className="text-md text-gray-900 px-6 py-4 text-center font-extrabold"
+																	style={header_style}
+																>
+																	Objective Marks
+																</th>
+																<th
+																	scope="col"
+																	className="text-md text-gray-900 px-6 py-4 text-center font-extrabold"
+																	style={header_style}
+																>
+																	Subjective Marks
+
+																</th>
+																<th
+																	scope="col"
+																	className="text-md text-gray-900 px-6 py-4 text-center font-extrabold"
+																	style={header_style}
+																>
+																	Total Marks
+																</th>
+															</tr>
+														</thead>
+														<tbody>
+															{tablebody.map((row) => (
+																<TableRowStudents row={row} key={row[0]} />
+															))}
+														</tbody>
+													</table>
+												</div>
+											</div>
+										</div>
+									</div>
+								</>
+							)}
+						</div>
+
 						<div className="Student-answers">
 							<div className="sub_heading flex text-white text-[1.5vw] pt-5">
 								Student Answers
@@ -589,6 +797,7 @@ function Admin() {
 											setStudentAnswers(!studentAnswers);
 											await fetch_all_student_answers();
 											setGetAllQuestions(false);
+											setListOfStudents(false);
 										} else {
 											setStudentAnswers(!studentAnswers);
 											setAnswers_internalloader(true);
@@ -637,6 +846,27 @@ function Admin() {
 																>
 																	Answer
 																</th>
+																<th
+																	scope="col"
+																	className="text-md text-gray-900 px-6 py-4 text-center font-extrabold"
+																	style={header_style}
+																>
+																	Result
+																</th>
+																<th
+																	scope="col"
+																	className="text-md text-gray-900 px-6 py-4 text-center font-extrabold"
+																	style={header_style}
+																>
+																	Correct Answer
+																</th>
+																{/* <th
+																	scope="col"
+																	className="text-md text-gray-900 px-6 py-4 text-center font-extrabold"
+																	style={header_style}
+																>
+																	Total Marks
+																</th> */}
 															</tr>
 														</thead>
 														<tbody>
@@ -653,6 +883,7 @@ function Admin() {
 								</>
 							)}
 						</div>
+
 						<div className="add_questions ">
 							<div className="sub_heading flex text-white text-[1.5vw] pt-5">
 								Add Questions
@@ -783,6 +1014,37 @@ function Admin() {
 												id="file"
 												name="file"
 												accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+												onChange={(e) => handleFileChange(e)}
+											></input>
+										</div>
+										<div className="form-group mb-6">
+											<div className="submit_button flex align-middle text-white justify-center space-x-2 items-center text-[1.2vw] p-t-5">
+												<button className="formFieldLink t-md hover:text-[#D61C4E] transition ease-in-out bg-[#D61C4E] px-5 py-1.5 rounded-lg hover:bg-white">
+													Upload
+												</button>
+											</div>
+										</div>
+									</div>
+								</form>
+
+								<form
+									className="upload_file space-y-10 w-[50%]"
+									onSubmit={(e) => handleFileUpload(e)}
+								>
+									<div className="subheading text-white text-[1.3vw] py-5 flex justify-center">
+										Add Theory Questions
+									</div>
+									<div className="form-group mb-6 space-y-5">
+										<div className="input_field flex flex-col align-middle justify-center text-white space-y-10 items-center text-2xl ">
+											<label className="w-[fit-content]">Upload the pdf</label>
+											<input
+												className="form-control border-solid pl-3 py-1.5 m-0 bg-transparent 
+                    									transition ease-in-out text-base focus:text-white focus:bg-transparent focus:border-black focus:outline-none focus:rounded"
+												style={input_style}
+												type="file"
+												id="file"
+												name="file"
+												accept=".pdf"
 												onChange={(e) => handleFileChange(e)}
 											></input>
 										</div>

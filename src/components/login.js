@@ -46,7 +46,7 @@ const Login =() => {
         password:password,
         image:webcamRef.current.getScreenshot(),
       }
-    // console.log(content);
+    console.log(ip_url);
     const url=ip_url+"/login"
         await axios.post(url, content)
         .then(response => {
