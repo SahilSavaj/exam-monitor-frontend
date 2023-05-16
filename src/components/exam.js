@@ -406,7 +406,7 @@ const Exam = () => {
 				/>
 				<span className="camera_message text-white">{message}</span>
 				<span className="timer_messange text-white" id="timer">
-					{counter}
+					{counter?(<>Time Remaining - {counter}</>):("")}
 				</span>
 			</div>
 			{button ? (
@@ -421,12 +421,12 @@ const Exam = () => {
 							></div>
 						</div>
 					) : (
-						<div className="py-20">
+						<div className="py-20 overflow-scroll h-[100vh]">
 							<div className="page_heading flex justify-center align-start text-[#D61C4E] font-sans text-[2vw]">
 								Questions
 							</div>
 							<form className="flex felx-col justify-center align-middle items-center">
-								<div className="question_form w-[90vw] py-20">
+								<div className="question_form w-[90vw] py-20 ">
 									{!uploadPdf ? (
 										<>
 											<div className="question flex justify-start text-white text-[1.5vw] p-2 ">
@@ -500,7 +500,7 @@ const Exam = () => {
 											</div>
 										</>
 									) : (
-										<>
+										<div className="overflow-auto h-fit">
 											<div className="question flex justify-start text-white text-[1.5vw] p-2 ">
 												{question_no} Answer the following Theory Questions and Upload in PDF format
 											</div>
@@ -512,7 +512,7 @@ const Exam = () => {
 											>Open PDF
 											</button> */}
 
-											<embed src={pdfFile} width="100%" height="800px" style={{ "object-fit": "cover" }} />
+											<iframe src={pdfFile} width="100%" height="800px" style={{ "object-fit": "cover" }} />
 											{/* {modal && ReactDOM.createPortal(modalBody(), document.body)} */}
 											<div className="mt-20 flex flex-col w-[30%] text-white space-y-5">
 												<label className="w-[fit-content]">Upload the Answer pdf</label>
@@ -528,7 +528,7 @@ const Exam = () => {
 												></input>
 											</div>
 
-										</>
+										</div>
 									)}
 
 									<div className="action_buttons flex py-20 space-x-10">

@@ -1,6 +1,20 @@
 import axios from "axios";
 import React, { useState, useEffect, Component } from "react";
 import { useNavigate } from "react-router-dom";
+import Modal from 'react-modal';
+const customStyles = {
+	content: {
+	  top: '50%',
+	  left: '50%',
+	  right: 'auto',
+	  bottom: 'auto',
+	  marginRight: '-50%',
+	  transform: 'translate(-50%, -50%)',
+	  width:"70%",
+	},
+  };
+
+//   Modal.setAppElement('#theorypdf');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -9,54 +23,7 @@ const searchParams = new URLSearchParams(document.location.search);
 const admin_id = searchParams.get("admin_id");
 
 
-class TableRowStudents extends Component {
-	render() {
-		let row = this.props.row;
-		console.log(row)
-		return (
-			<tr scope="col" key={row.id} className="text-md text-gray-900 px-6 py-4 text-center">
-				<td
-					className="text-sm text-gray-900 "
-					style={{ border: "1px solid black" }}
-				>
-					<img src={row.image} className="mx-auto" width={110}></img>
-				</td>
-				<td
-					className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-					style={{ border: "1px solid black" }}
-				>
-					{row.name}
-				</td>
-				<td
-					className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-					style={{ border: "1px solid black" }}
-				>
-					{row.sapid}
-				</td>
 
-				<td
-					className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-					style={{ border: "1px solid black" }}
-				>
-					{row.objectivemarks}
-				</td>
-				<td
-					className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-					style={{ border: "1px solid black" }}
-				>
-					{row.subjectivemarks}
-				</td>
-				<td
-					className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-					style={{ border: "1px solid black" }}
-				>
-					{row.totalmarks}
-				</td>
-
-			</tr>
-		);
-	}
-}
 
 function Admin() {
 	let navigate = useNavigate();
@@ -101,6 +68,22 @@ function Admin() {
 	const [file, setFile] = useState();
 	const [fileType, setFileType] = useState("");
 
+
+	let subtitle;
+	const [modalIsOpen, setIsOpen] = React.useState(false);
+
+	function openModal() {
+		setIsOpen(true);
+	}
+
+	function afterOpenModal() {
+		// references are now sync'd and can be accessed.
+		subtitle.style.color = '#f00';
+	}
+
+	function closeModal() {
+		setIsOpen(false);
+	}
 	const handleInputChange = (e) => {
 		const { id, value } = e.target;
 		// console.log()
@@ -212,6 +195,79 @@ function Admin() {
 							{currElement}
 						</td>
 					))}
+				</tr>
+			);
+		}
+	}
+
+	class TableRowStudents extends Component {
+		render() {
+			let row = this.props.row;
+			console.log(row)
+			return (
+				<tr scope="col" key={row.id} className="text-md text-gray-900 px-6 py-4 text-center">
+					<td
+						className="text-sm text-gray-900 "
+						style={{ border: "1px solid black" }}
+					>
+						<img src={row.image} className="mx-auto" width={110}></img>
+					</td>
+					<td
+						className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+						style={{ border: "1px solid black" }}
+					>
+						{row.name}
+					</td>
+					<td
+						className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+						style={{ border: "1px solid black" }}
+					>
+						{row.sapid}
+					</td>
+					<td
+						className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+						style={{ border: "1px solid black" }}
+					>
+						<button className="flex justify-center px-1 py-1.5 w-fit mx-auto rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white] "
+						onClick={()=>{
+							openModal()
+						}}>Show Pdf</button>
+						{/* {row.subjectivepdf} */}
+						<Modal
+							id={"modal_"+row.sapid}
+							isOpen={modalIsOpen}
+							onAfterOpen={afterOpenModal}
+							onRequestClose={closeModal}
+							style={customStyles}
+							contentLabel="Theory Answer"
+						>	
+							<iframe src={row.subjectivepdf} width="100%" height="800px" style={{ "object-fit": "cover" }} />
+							<button className="flex justify-center px-1 py-1.5 w-fit mx-auto rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white] my-2 "
+						onClick={()=>{
+							closeModal()
+
+						}}> Close</button>
+						</Modal>
+					</td>
+					<td
+						className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+						style={{ border: "1px solid black" }}
+					>
+						{row.objectivemarks}
+					</td>
+					<td
+						className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+						style={{ border: "1px solid black" }}
+					>
+						{row.subjectivemarks}
+					</td>
+					<td
+						className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+						style={{ border: "1px solid black" }}
+					>
+						{row.totalmarks}
+					</td>
+	
 				</tr>
 			);
 		}
@@ -542,7 +598,7 @@ function Admin() {
 	}, []);
 
 	return (
-		<div className="">
+		<div className="" id="admin">
 			{!loading ? (
 				<div className="flex justify-center items-center align-middle h-[100vh]">
 					<div
@@ -857,7 +913,13 @@ function Admin() {
 																>
 																	Sapid
 																</th>
-
+																<th
+																	scope="col"
+																	className="text-md text-gray-900 px-6 py-4 text-center font-extrabold"
+																	style={header_style}
+																>
+																	Subjective PDF
+																</th>
 																<th
 																	scope="col"
 																	className="text-md text-gray-900 px-6 py-4 text-center font-extrabold"
