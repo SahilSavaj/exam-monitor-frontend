@@ -13,8 +13,6 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
 
-
-
 const Exam = () => {
 	const [show, setShow] = useState(false);
 	const [modal, setModal] = useState(false);
@@ -34,6 +32,7 @@ const Exam = () => {
 	const [pdfFile, setPdfFile] = useState("")
 	const [file, setFile] = useState("");
 	const [fileType, setFileType] = useState("");
+	const [isExit, setIsExit] = useState(true);
 
 
 	const [counter, setCounter] = React.useState(null);
@@ -45,6 +44,7 @@ const Exam = () => {
 		if (e.target.files) {
 			setFile(e.target.files[0]);
 			setFileType(e.target.files[0].type)
+			openFullscreen()
 		}
 	}
 	const input_style = {
@@ -161,6 +161,10 @@ const Exam = () => {
 					setUploadPdf(true);
 					setLoading(false);
 					clearAll(window);
+					setIsExit(false)
+
+					fetch_timer();
+
 					// navigate("/");
 				} else if (get_resp.data.statuscode === 404) {
 					alert(get_resp.data.response);
@@ -189,7 +193,8 @@ const Exam = () => {
 				await fetchPDF();
 				setUploadPdf(true);
 				setLoading(false);
-
+				fetch_timer();
+				setIsExit(false)
 				clearAll(window);
 				// navigate("/");
 			} else if (
@@ -235,7 +240,7 @@ const Exam = () => {
 				return false;
 			}
 		}
-		if (!document.fullscreenElement) {
+		if (!document.fullscreenElement && isExit) {
 
 			alert("Don't try exit full screen")
 			navigate("/")
@@ -325,6 +330,10 @@ const Exam = () => {
 		}
 	}, [counter]);
 
+	function handleExitFullScreenClick() {
+		document.webkitExitFullscreen()
+	}
+
 	// document.addEventListener('contextmenu', event => event.preventDefault());
 
 	return (
@@ -376,7 +385,6 @@ const Exam = () => {
 											className="formFieldLink t-md hover:text-[#D61C4E] transition ease-in-out bg-[#D61C4E] px-10 py-1.5 rounded-lg hover:bg-white"
 											onClick={(e) => {
 												openFullscreen()
-
 												setShow(!show);
 												setButton(false);
 												fetch_question(1, false, e);
@@ -406,7 +414,7 @@ const Exam = () => {
 				/>
 				<span className="camera_message text-white">{message}</span>
 				<span className="timer_messange text-white" id="timer">
-					{counter?(<>Time Remaining - {counter}</>):("")}
+					{counter ? (<>Time Remaining - {counter}</>) : ("")}
 				</span>
 			</div>
 			{button ? (
@@ -421,7 +429,7 @@ const Exam = () => {
 							></div>
 						</div>
 					) : (
-						<div className="py-20 overflow-scroll h-[100vh]">
+						<div className="py-20 overflow-y-auto h-[100vh]">
 							<div className="page_heading flex justify-center align-start text-[#D61C4E] font-sans text-[2vw]">
 								Questions
 							</div>
@@ -500,9 +508,9 @@ const Exam = () => {
 											</div>
 										</>
 									) : (
-										<div className="overflow-auto h-fit">
+										<div className="overflow-y-auto overflow-x-none h-fit">
 											<div className="question flex justify-start text-white text-[1.5vw] p-2 ">
-												{question_no} Answer the following Theory Questions and Upload in PDF format
+												{question_no}. Answer the following Theory Questions and Upload in PDF format
 											</div>
 											{/* <button
 												type="button"
@@ -512,7 +520,7 @@ const Exam = () => {
 											>Open PDF
 											</button> */}
 
-											<iframe src={pdfFile} width="100%" height="800px" style={{ "object-fit": "cover" }} />
+											<iframe src={pdfFile + "#toolbar=0"} width="70%" height="800px" style={{ "objectFit": "cover" }} />
 											{/* {modal && ReactDOM.createPortal(modalBody(), document.body)} */}
 											<div className="mt-20 flex flex-col w-[30%] text-white space-y-5">
 												<label className="w-[fit-content]">Upload the Answer pdf</label>

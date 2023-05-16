@@ -15,7 +15,20 @@ const customStyles = {
 	},
 };
 
-//   Modal.setAppElement('#theorypdf');
+const inputCustomStyles = {
+	content: {
+		top: '50%',
+		left: '50%',
+		right: 'auto',
+		bottom: 'auto',
+		marginRight: '-50%',
+		transform: 'translate(-50%, -50%)',
+		width: "fit-content",
+		background: "rgba(0,0,0,0.7)",
+		color: "black"
+	},
+};
+
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -72,6 +85,10 @@ function Admin() {
 
 	const [modalIsOpen, setIsOpen] = useState(false);
 	const [studentPdf, setStudentPdf] = useState("");
+	const [editMarks, setEditMarks] = useState(false);
+	const [updatedPdfMarks, setUpdatedPdfMarks] = useState();
+	const [inputModalIsOpen, setInputModalIsOpen] = useState(false);
+	const [idToUpdateFor, setIdToUpdateFor] = useState();
 
 	async function openModal(sapid) {
 		const resp = await (await axios.get(ip_url + "/admin/theorypdf" + "?admin_id=" + admin_id + "&sapid=" + sapid)).data.response
@@ -87,8 +104,29 @@ function Admin() {
 
 	}
 
+	async function openInputModal(sapid) {
+		setInputModalIsOpen(true);
+		setIdToUpdateFor(sapid)
 
-	function closeModal() {
+	}
+
+	async function updateMarks(sapid) {
+		const content = {
+			admin_id: admin_id,
+			sapid: sapid,
+			marks: updatedPdfMarks
+		}
+		const resp = await (await axios.post(ip_url + "/admin/studenttheorymarks", content)).data.response
+		console.log(resp)
+		alert(resp)
+		setInputModalIsOpen(false);
+		await fetch_student_marks()
+
+
+	}
+
+
+	async function closeModal() {
 		setIsOpen(false);
 	}
 	const handleInputChange = (e) => {
@@ -121,6 +159,9 @@ function Admin() {
 		if (id == 'theorymarksconfig') {
 			setTheoryMarksConfig(value)
 		}
+		if (id == "updatedPdfMarks") {
+			setUpdatedPdfMarks(value)
+		}
 	};
 
 	class TableRowQuestions extends Component {
@@ -143,7 +184,7 @@ function Admin() {
 							{currElement}{" "}
 						</td>
 					))}
-					<td
+					{/* <td
 						className="px-6 whitespace-nowrap text-sm text-blue-900"
 						style={{ border: "1px solid black" }}
 					>
@@ -151,7 +192,7 @@ function Admin() {
 						<button className="bg-sky-300 rounded-full w-[50px] p-1 hover:bg-white hover:text-sky-500">
 							Edit
 						</button>
-					</td>
+					</td> */}
 					<td
 						className="px-6 whitespace-nowrap text-sm text-red-900"
 						style={{ border: "1px solid black" }}
@@ -238,7 +279,7 @@ function Admin() {
 							type="button"
 							className="flex justify-center px-1 py-1.5 w-fit mx-auto rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white] "
 							onClick={async () => {
-								openModal(row.sapid)
+								await openModal(row.sapid)
 							}}
 						>
 							Show Pdf
@@ -254,14 +295,14 @@ function Admin() {
 						className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
 						style={{ border: "1px solid black" }}
 					>
-
-						<div className="space-x-5">
-							<span>{row.subjectivemarks}</span>
+						<div className="">
+							<span className="mx-3 text-gray-900">{row.subjectivemarks}</span>
 							<button
-								onClick={async()=>{
-
+								onClick={async (e) => {
+									setEditMarks(!editMarks)
+									await openInputModal(row.sapid)
 								}}
-								className="bg-sky-300 rounded-full w-[50px] p-1 hover:bg-white hover:text-sky-500">
+								className="bg-sky-300 rounded-full py-1 px-3 hover:bg-white hover:text-sky-500">
 								Edit
 							</button>
 						</div>
@@ -613,9 +654,31 @@ function Admin() {
 			>
 				<iframe src={studentPdf + "#toolbar=0"} width="100%" height="800px" style={{ "objectFit": "cover" }} />
 				<button className="flex justify-center px-1 py-1.5 w-fit mx-auto rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white] my-2 "
-					onClick={() => {
-						closeModal()
+					onClick={async () => {
+						await closeModal()
 					}}> Close</button>
+			</Modal>
+			<Modal
+				isOpen={inputModalIsOpen}
+				onRequestClose={closeModal}
+				style={inputCustomStyles}
+				contentLabel="Input"
+				ariaHideApp={false}
+				className=""
+			>
+				<span className=" text-white">Enter Updated Theory marks</span><br></br>
+				<input
+					className="my-3 p-1 outline-none"
+					type="number"
+					id="updatedPdfMarks"
+					style={input_style}
+					value={updatedPdfMarks}
+					onChange={(e) => { handleInputChange(e) }}
+				></input>
+				<button className="flex justify-center px-1 py-1.5 w-fit mx-auto rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white] my-2 "
+					onClick={async () => {
+						await updateMarks(idToUpdateFor)
+					}}> Update</button>
 			</Modal>
 			{
 				!loading ? (
@@ -837,13 +900,13 @@ function Admin() {
 																	>
 																		Answer
 																	</th>
-																	<th
+																	{/* <th
 																		scope="col"
 																		className="text-md text-gray-900 px-6 py-4 text-center font-extrabold"
 																		style={header_style}
 																	>
 																		Edit
-																	</th>
+																	</th> */}
 																	<th
 																		scope="col"
 																		className="text-md text-gray-900 px-6 py-4 text-center font-extrabold"
