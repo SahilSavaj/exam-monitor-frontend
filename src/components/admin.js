@@ -73,13 +73,17 @@ function Admin() {
 	const [questions_internalloader, setQuestions_internalloader] = useState(true);
 	const [student_marks_internalloader, setStudentMarks_internalloader] = useState(true);
 	const [answers_internalloader, setAnswers_internalloader] = useState(true);
+	const [subjective_internalloader, setSubjective_internalloader] = useState(true);
+
 	const [timer_internalloader, setTimer_internalloader] = useState(true);
 	const [marks_internalloader, setMarks_internalloader] = useState(true);
+	const [theorymarks_internalloader, setThoeryMarks_internalloader] = useState(true);
 	const [studentAnswers, setStudentAnswers] = useState(false);
 	const [listOfStudents, setListOfStudents] = useState(false);
 	const [getAllQuestions, setGetAllQuestions] = useState(false);
-	const [addQuestions, setAddQuestions] = useState(false);
+	const [getSubjectiveAns, setGetSubjectiveAns] = useState(false);
 
+	const [addQuestions, setAddQuestions] = useState(false);
 	const [tablebody, setTableBody] = useState("");
 	const sapid = 60002190091;
 
@@ -92,6 +96,8 @@ function Admin() {
 
 	const [timer, setTimer] = useState("");
 	const [marksconfig, setMarksConfig] = useState("");
+	const [theorymarksconfig, setTheoryMarksConfig] = useState();
+
 	const [file, setFile] = useState();
 	const [fileType, setFileType] = useState("");
 
@@ -121,6 +127,9 @@ function Admin() {
 		}
 		if (id === "marksconfig") {
 			setMarksConfig(value);
+		}
+		if (id == 'theorymarksconfig') {
+			setTheoryMarksConfig(value)
 		}
 	};
 
@@ -358,23 +367,57 @@ function Admin() {
 		e.preventDefault();
 		const searchParams = new URLSearchParams(document.location.search);
 		const admin_id = searchParams.get("admin_id");
-		const url = ip_url + "/admin/addquestion/file";
 		let headers = {
 			"Content-type": "application/json",
 			"admin-id": admin_id,
 			'file-type': fileType
 		};
 		let data = new FormData();
-		data.append("data", file);console.log(data)
-
-		const resp = await axios.post(url, data, { headers });
-		console.log(resp.data);
-		if (resp.data.statuscode === 200) {
-			alert(resp.data.response);
-		} else {
-			alert(resp.data.response);
-			navigate("/admin", { admin_id: admin_id });
+		if (fileType === "application/pdf") {
+			const convertBase64 = (file) => {
+				return new Promise((resolve, reject) => {
+					const fileReader = new FileReader();
+					fileReader.readAsDataURL(file)
+					fileReader.onload = () => {
+						resolve(fileReader.result);
+					}
+					fileReader.onerror = (error) => {
+						reject(error);
+					}
+				})
+			}
+			const base64 = await convertBase64(file)
+			console.log(base64)
+			const data = {
+				"pdf": base64
+			}
+			const url = ip_url + "/admin/addquestion/pdffile";
+			const resp = await axios.post(url, data, { headers });
+			console.log(resp.data);
+			if (resp.data.statuscode === 200) {
+				alert(resp.data.response);
+			} else {
+				alert(resp.data.response);
+				navigate("/admin", { admin_id: admin_id });
+			}
 		}
+		else {
+			data.append("data", file); console.log(data)
+			const url = ip_url + "/admin/addquestion/file";
+
+			// data.append("data", base64); console.log(data)
+			const resp = await axios.post(url, data, { headers });
+			console.log(resp.data);
+			if (resp.data.statuscode === 200) {
+				alert(resp.data.response);
+			} else {
+				alert(resp.data.response);
+				navigate("/admin", { admin_id: admin_id });
+			}
+		}
+
+
+
 	}
 
 	async function updateTimer(e) {
@@ -406,9 +449,10 @@ function Admin() {
 				console.error("There was an error!", error);
 			});
 	}
+
 	async function updateAllmarks(e) {
 		e.preventDefault();
-		await setMarks_internalloader(false);
+		setMarks_internalloader(false);
 		console.log(marksconfig);
 		const searchParams = new URLSearchParams(document.location.search);
 		const admin_id = searchParams.get("admin_id");
@@ -436,6 +480,36 @@ function Admin() {
 			});
 	}
 
+	async function updateTheorymarks(e) {
+		e.preventDefault();
+		setThoeryMarks_internalloader(false);
+		console.log(marksconfig);
+		const searchParams = new URLSearchParams(document.location.search);
+		const admin_id = searchParams.get("admin_id");
+		let content = {
+			admin_id: admin_id,
+			marks: theorymarksconfig,
+		};
+		console.log(content);
+		const url = ip_url + "/admin/settheorymarks";
+		await axios
+			.post(url, content)
+			.then((response) => {
+				console.log(response.data);
+				if (response.data.statuscode === 200) {
+					alert(response.data.response);
+					// setTimer(timer)
+					setThoeryMarks_internalloader(true);
+				} else {
+					alert(response.data.response);
+					navigate("/admin", { admin_id: admin_id });
+				}
+			})
+			.catch((error) => {
+				console.error("There was an error!", error);
+			});
+	}
+
 	useEffect(() => {
 		(async () => {
 			await sleep(1000);
@@ -452,6 +526,7 @@ function Admin() {
 					setTimer(get_resp.data.response.timer);
 					if (get_resp.data.response.is_common_marks === true) {
 						setMarksConfig(get_resp.data.response.marks)
+						setTheoryMarksConfig(get_resp.data.response.theorymarks)
 					}
 
 				} else {
@@ -546,6 +621,43 @@ function Admin() {
 									Change
 								</button>
 								{!marks_internalloader ? (
+									<div className="flex justify-center items-center align-middle">
+										<div
+											className="spinner-border animate-spin inline-block w-5 h-5 border-4 rounded-full text-[#D61C4E] transition ease-in-out"
+											role="status"
+										></div>
+									</div>
+								) : (
+									""
+								)}
+							</div>
+							<div className="marks-content flex flex-row align-middle space-x-5 items-center">
+								<div className="marks_settings text-[1.5vw] text-white hover:cursor-default">
+									Marks for Theory question -
+								</div>
+								<div className="marks_display space-x-1 flex flex-row py-1.5">
+									<input
+										className="marks w-[4vw] bg-white h-8 text-white text-lg p-2 placeholder:text-white bg-transparent"
+										style={input_style}
+										type="number"
+										name="theorymarksconfig"
+										id="theorymarksconfig"
+										value={theorymarksconfig}
+										placeholder={theorymarksconfig}
+										onChange={(e) => handleInputChange(e)}
+									></input>
+									<span className="text-[1.2vw] text-white hover:cursor-default">
+										mks
+									</span>
+								</div>
+
+								<button
+									className="flex w-[fit-content] align-middle py-1.5 px-5 text-lg rounded text-white bg-[#D61C4E] hover:text-[#D61C4E] hover:bg-[white]"
+									onClick={(e) => updateTheorymarks(e)}
+								>
+									Change
+								</button>
+								{!theorymarks_internalloader ? (
 									<div className="flex justify-center items-center align-middle">
 										<div
 											className="spinner-border animate-spin inline-block w-5 h-5 border-4 rounded-full text-[#D61C4E] transition ease-in-out"
