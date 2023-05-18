@@ -27,15 +27,15 @@ return (
 					<Link to="/register" className="mr-5 hover:text-white ">
 						Register
 					</Link>
-					<Link
-						to="/admin?admin_id=60002190086"
+					{/* <Link
+						to="/admin?admin_id=60002190091"
 						className="mr-5 hover:text-white "
 					>
 						Admin
 					</Link>
 					<Link to="/exam?sapid=60002190091" className="mr-5 hover:text-white">
 						Exam
-					</Link>
+					</Link> */}
 					{/* <Link to="/code?sapid=1234567" className="mr-5 hover:text-white">
 						Code
 					</Link> */}

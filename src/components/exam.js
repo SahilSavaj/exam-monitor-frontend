@@ -11,7 +11,7 @@ const ip_url = process.env.REACT_APP_IP_ADDRESS;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-
+const max_retries=3;
 
 const Exam = () => {
 	const [show, setShow] = useState(false);
@@ -33,6 +33,7 @@ const Exam = () => {
 	const [file, setFile] = useState("");
 	const [fileType, setFileType] = useState("");
 	const [isExit, setIsExit] = useState(true);
+	const [retry,setRetry]=useState(1);
 
 
 	const [counter, setCounter] = React.useState(null);
@@ -219,6 +220,16 @@ const Exam = () => {
 			}
 		}
 	}
+	function openFullscreen(interval) {
+		let elem = document.getElementById("exam");
+		if (elem.requestFullscreen) {
+			elem.requestFullscreen();
+		} else if (elem.webkitRequestFullscreen) { /* Safari */
+			elem.webkitRequestFullscreen();
+		} else if (elem.msRequestFullscreen) { /* IE11 */
+			elem.msRequestFullscreen();
+		}
+	}
 
 	async function check_face() {
 		if (webcamRef.current) {
@@ -240,12 +251,34 @@ const Exam = () => {
 				return false;
 			}
 		}
-		if (!document.fullscreenElement && isExit) {
 
-			alert("Don't try exit full screen")
+		if (!document.fullscreenElement && isExit) {
+			// openFullscreen()
+			// console.log(retry)
+			// setRetry(retry+1)
+			// if (retry>max_retries) {
+			// 	alert("You tried to exit fullscreen multiple times. You are not allowed to attend exam.")
+			// 	navigate("/")
+			// 	clearAll(window);
+
+			// }
+			// else{
+			// 	setCounter(counter)
+			// 	alert("Don't try to exit fullscreen.");
+			// 	// document.getElementById("clearall").click()
+			// 	openFullscreen()
+
+			// 	clearAll(window);
+				
+			// }
+			alert("Don't try to exit fullscreen.");
+			
+			clearAll(window);
 			navigate("/")
 
-		}
+
+			} 
+		
 	}
 
 	async function fetch_timer() {
@@ -257,16 +290,7 @@ const Exam = () => {
 			}
 		}
 	}
-	function openFullscreen(interval) {
-		let elem = document.getElementById("exam");
-		if (elem.requestFullscreen) {
-			elem.requestFullscreen();
-		} else if (elem.webkitRequestFullscreen) { /* Safari */
-			elem.webkitRequestFullscreen();
-		} else if (elem.msRequestFullscreen) { /* IE11 */
-			elem.msRequestFullscreen();
-		}
-	}
+	
 
 	document.addEventListener('contextmenu', event => event.preventDefault());
 
@@ -544,7 +568,8 @@ const Exam = () => {
 											<>
 												<div className="clear_all_butn">
 													<button
-														type="button"
+														type="button"id="clearall"
+
 														className="formFieldLink text-[#D61C4E] hover:text-[white] transition ease-in-out bg-[white] w-[7vw] py-1.5 rounded-lg hover:bg-[#D61C4E]"
 														onClick={() => {
 															clear_all_options();
@@ -586,6 +611,6 @@ const Exam = () => {
 			)}
 		</div>
 	);
-};
+										};							
 
 export default Exam;

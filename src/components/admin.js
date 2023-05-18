@@ -91,6 +91,8 @@ function Admin() {
 	const [idToUpdateFor, setIdToUpdateFor] = useState();
 
 	async function openModal(sapid) {
+		const admin_id = searchParams.get("admin_id");
+
 		const resp = await (await axios.get(ip_url + "/admin/theorypdf" + "?admin_id=" + admin_id + "&sapid=" + sapid)).data.response
 		console.log(resp)
 		if (resp.status === "id_found") {
